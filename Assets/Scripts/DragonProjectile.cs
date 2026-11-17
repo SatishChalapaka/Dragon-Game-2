@@ -10,6 +10,9 @@ public class DragonProjectile : MonoBehaviour
     [SerializeField] private float lifetime = 4f;
     [SerializeField] private float damage = 10f;
 
+    [Header("Collision Settings")]
+    [SerializeField] private LayerMask enemyLayers;
+
     private Rigidbody rb;
     private PooledObject pooledObject;
 
@@ -57,8 +60,7 @@ public class DragonProjectile : MonoBehaviour
             ReturnToPool();
         }
     }
-    [Header("Collision Settings")]
-    [SerializeField] private LayerMask enemyLayers;
+
     private void OnTriggerEnter(Collider other)
     {
         int otherLayer = 1 << other.gameObject.layer;
@@ -66,26 +68,21 @@ public class DragonProjectile : MonoBehaviour
         if ((enemyLayers.value & otherLayer) == 0)
             return;
 
-        // Enemy damage will be implemented next.
+        IDamageable damageable =
+            other.GetComponentInParent<IDamageable>();
+
+        if (damageable == null)
+            return;
+
+        damageable.TakeDamage(damage);
+
         ReturnToPool();
     }
 
     private void ReturnToPool()
     {
         if (pooledObject == null)
-        {
-            pooledObject = GetComponent<PooledObject>();
-        }
-
-        if (pooledObject == null)
-        {
-            Debug.LogError(
-                "PooledObject component is missing on " + gameObject.name,
-                this
-            );
-
             return;
-        }
 
         direction = Vector3.zero;
 
