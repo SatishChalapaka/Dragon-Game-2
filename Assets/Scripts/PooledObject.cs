@@ -1,0 +1,43 @@
+
+using UnityEngine;
+
+public class PooledObject : MonoBehaviour
+{
+    private ObjectPoolManager poolManager;
+
+    public GameObject Prefab { get; private set; }
+
+    public bool IsInPool { get; private set; }
+
+    public void Initialize(
+        ObjectPoolManager manager,
+        GameObject prefab)
+    {
+        poolManager = manager;
+        Prefab = prefab;
+
+        // Newly created objects are not yet stored in the pool.
+        IsInPool = false;
+    }
+
+    public void MarkAsActive()
+    {
+        IsInPool = false;
+    }
+
+    public void MarkAsInPool()
+    {
+        IsInPool = true;
+    }
+
+    public void ReturnToPool()
+    {
+        if (IsInPool)
+            return;
+
+        if (poolManager != null)
+        {
+            poolManager.ReturnToPool(this);
+        }
+    }
+}
