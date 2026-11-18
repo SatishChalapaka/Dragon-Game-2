@@ -20,26 +20,28 @@ public class Health : MonoBehaviour, IDamageable
         ResetHealth();
     }
 
-    public void TakeDamage(float damage)
+   public void TakeDamage(float damage)
+{
+    if (IsDead || damage <= 0f)
+        return;
+
+    float previousHealth = CurrentHealth;
+
+    CurrentHealth = Mathf.Max(0f, CurrentHealth - damage);
+
+    OnHealthChanged?.Invoke(
+        this,
+        previousHealth,
+        CurrentHealth
+    );
+
+    if (CurrentHealth <= 0f)
     {
-        if (IsDead || damage <= 0f)
-            return;
-
-        float previousHealth = CurrentHealth;
-
-        CurrentHealth = Mathf.Max(0f, CurrentHealth - damage);
-
-        OnHealthChanged?.Invoke(
-            this,
-            previousHealth,
-            CurrentHealth
-        );
-
-        if (CurrentHealth <= 0f)
-        {
-            Die();
-        }
+        Die();
     }
+
+    Debug.Log($"Current Health: {CurrentHealth}");
+}
 
     public void Heal(float amount)
     {

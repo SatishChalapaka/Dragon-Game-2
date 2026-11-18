@@ -4,15 +4,24 @@ using UnityEngine;
 public class DragonController : MonoBehaviour
 {
     [Header("Components")]
-    [SerializeField] private Joystick joystick;
     [SerializeField] private DragonMovement movement;
     [SerializeField] private DragonRotation rotation;
 
     [Header("Dragon Stats")]
     [SerializeField] private DragonStats stats = new DragonStats();
 
+    private Camera mainCamera;
+    private Plane movementPlane;
+
     private void Awake()
     {
+        mainCamera = Camera.main;
+
+        movementPlane = new Plane(
+            Vector3.up,
+            new Vector3(0f, transform.position.y, 0f)
+        );
+
         movement.SetMoveSpeed(stats.moveSpeed);
 
         rotation.SetRotationSettings(
@@ -24,13 +33,27 @@ public class DragonController : MonoBehaviour
 
     private void Update()
     {
-        Vector2 input = joystick != null
-            ? joystick.Direction
-            : Vector2.zero;
+        if (Input.GetMouseButton(0))
+        {
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
-        input = Vector2.ClampMagnitude(input, 1f);
+            if (movementPlane.Raycast(ray, out float distance))
+            {
+                Vector3 targetPosition = ray.GetPoint(distance);
 
-        movement.SetMovementInput(input);
-        rotation.SetMovementInput(input);
+                movement.SetTargetPosition(targetPosition);
+
+                Vector3 direction = targetPosition - transform.position;
+
+                rotation.SetMovementInput(
+                    new Vector2(direction.x, direction.z).normalized
+                );
+            }
+        }
+        else
+        {
+            movement.StopFollowing();
+            rotation.SetMovementInput(Vector2.zero);
+        }
     }
 }

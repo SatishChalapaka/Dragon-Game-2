@@ -12,7 +12,8 @@ public class DragonMovement : MonoBehaviour
     [SerializeField] private Vector2 maxBounds = new Vector2(5f, 12f);
 
     private Rigidbody rb;
-    private Vector2 movementInput;
+    private Vector3 targetPosition;
+    private bool isFollowing;
 
     private void Awake()
     {
@@ -26,9 +27,15 @@ public class DragonMovement : MonoBehaviour
             RigidbodyConstraints.FreezeRotation;
     }
 
-    public void SetMovementInput(Vector2 input)
+    public void SetTargetPosition(Vector3 position)
     {
-        movementInput = Vector2.ClampMagnitude(input, 1f);
+        targetPosition = position;
+        isFollowing = true;
+    }
+
+    public void StopFollowing()
+    {
+        isFollowing = false;
     }
 
     public void SetMoveSpeed(float speed)
@@ -38,14 +45,8 @@ public class DragonMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Vector3 direction = new Vector3(
-            movementInput.x,
-            0f,
-            movementInput.y
-        );
-
-        Vector3 targetPosition =
-            rb.position + direction * moveSpeed * Time.fixedDeltaTime;
+        if (!isFollowing)
+            return;
 
         targetPosition.x = Mathf.Clamp(
             targetPosition.x,
@@ -59,6 +60,12 @@ public class DragonMovement : MonoBehaviour
             maxBounds.y
         );
 
-        rb.MovePosition(targetPosition);
+        Vector3 newPosition = Vector3.MoveTowards(
+            rb.position,
+            targetPosition,
+            moveSpeed * Time.fixedDeltaTime
+        );
+
+        rb.MovePosition(newPosition);
     }
 }
