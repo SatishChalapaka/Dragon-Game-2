@@ -104,13 +104,14 @@ public class EnemyMovement : MonoBehaviour
 RotateTowards(direction);
     }
 
-    public void SetFormation(
-        Transform root,
-        Vector3 offset)
-    {
-        formationRoot = root;
-        formationOffset = offset;
-    }
+    
+public void SetFormation(Transform root, Vector3 offset)
+{
+    movementType = MovementType.Formation;
+    formationRoot = root;
+    formationOffset = offset;
+}
+
 
 private void RotateTowards(Vector3 direction)
 {
