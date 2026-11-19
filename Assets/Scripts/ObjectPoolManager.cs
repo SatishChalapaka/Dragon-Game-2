@@ -17,6 +17,9 @@ public class ObjectPoolManager : MonoBehaviour
     [Header("Pools")]
     [SerializeField] private List<Pool> pools = new List<Pool>();
 
+    private readonly List<PooledObject> activeObjects =
+        new List<PooledObject>();
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -39,6 +42,9 @@ public class ObjectPoolManager : MonoBehaviour
         {
             GameObject obj = CreateObject(prefab);
 
+            if (obj == null)
+                continue;
+
             StoreObject(pool, obj.GetComponent<PooledObject>());
         }
 
@@ -54,15 +60,12 @@ public class ObjectPoolManager : MonoBehaviour
             return null;
 
         Pool pool = GetPool(prefab);
-
         GameObject obj;
 
         if (pool.availableObjects.Count > 0)
         {
             int lastIndex = pool.availableObjects.Count - 1;
-
             obj = pool.availableObjects[lastIndex];
-
             pool.availableObjects.RemoveAt(lastIndex);
         }
         else
@@ -70,21 +73,31 @@ public class ObjectPoolManager : MonoBehaviour
             obj = CreateObject(prefab);
         }
 
-        obj.transform.SetPositionAndRotation(position, rotation);
+        if (obj == null)
+            return null;
 
         PooledObject pooledObject = obj.GetComponent<PooledObject>();
 
+        if (pooledObject == null)
+        {
+            Debug.LogError($"PooledObject missing on {prefab.name}");
+            Destroy(obj);
+            return null;
+        }
+
+        obj.transform.SetPositionAndRotation(position, rotation);
         pooledObject.MarkAsActive();
 
-        obj.SetActive(true);
+        if (!activeObjects.Contains(pooledObject))
+            activeObjects.Add(pooledObject);
 
+        obj.SetActive(true);
         return obj;
     }
 
     private GameObject CreateObject(GameObject prefab)
     {
         GameObject obj = Instantiate(prefab, transform);
-
         PooledObject pooledObject = obj.GetComponent<PooledObject>();
 
         if (pooledObject == null)
@@ -99,9 +112,7 @@ public class ObjectPoolManager : MonoBehaviour
         }
 
         pooledObject.Initialize(this, prefab);
-
         obj.SetActive(false);
-
         return obj;
     }
 
@@ -110,23 +121,40 @@ public class ObjectPoolManager : MonoBehaviour
         if (pooledObject == null || pooledObject.IsInPool)
             return;
 
-        Pool pool = GetPool(pooledObject.Prefab);
+        activeObjects.Remove(pooledObject);
 
+        Pool pool = GetPool(pooledObject.Prefab);
         StoreObject(pool, pooledObject);
+    }
+
+    public void ReturnAllActiveObjects()
+    {
+        // Use a copy because returning objects changes activeObjects.
+        List<PooledObject> objectsToReturn =
+            new List<PooledObject>(activeObjects);
+
+        foreach (PooledObject pooledObject in objectsToReturn)
+        {
+            if (pooledObject != null && !pooledObject.IsInPool)
+                pooledObject.ReturnToPool();
+        }
+
+        activeObjects.Clear();
+
+        Debug.Log("All active pooled objects returned.");
     }
 
     private void StoreObject(Pool pool, PooledObject pooledObject)
     {
-        if (pooledObject == null || pooledObject.IsInPool)
+        if (pool == null || pooledObject == null || pooledObject.IsInPool)
             return;
 
         pooledObject.MarkAsInPool();
-
         pooledObject.transform.SetParent(transform);
-
         pooledObject.gameObject.SetActive(false);
 
-        pool.availableObjects.Add(pooledObject.gameObject);
+        if (!pool.availableObjects.Contains(pooledObject.gameObject))
+            pool.availableObjects.Add(pooledObject.gameObject);
     }
 
     private Pool GetPool(GameObject prefab)
@@ -137,13 +165,8 @@ public class ObjectPoolManager : MonoBehaviour
                 return pool;
         }
 
-        Pool newPool = new Pool
-        {
-            prefab = prefab
-        };
-
+        Pool newPool = new Pool { prefab = prefab };
         pools.Add(newPool);
-
         return newPool;
     }
 

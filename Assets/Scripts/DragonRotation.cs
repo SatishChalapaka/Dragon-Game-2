@@ -16,7 +16,8 @@ public class DragonRotation : MonoBehaviour
 
     private void Awake()
     {
-        initialRotation = dragonVisual.localRotation;
+        if (dragonVisual != null)
+            initialRotation = dragonVisual.localRotation;
     }
 
     public void SetMovementInput(Vector2 input)
@@ -34,8 +35,19 @@ public class DragonRotation : MonoBehaviour
         pitchAngle = tiltAngle;
     }
 
+    public void ResetRotation()
+    {
+        movementInput = Vector2.zero;
+
+        if (dragonVisual != null)
+            dragonVisual.localRotation = initialRotation;
+    }
+
     private void Update()
     {
+        if (dragonVisual == null)
+            return;
+
         float pitch = -movementInput.y * pitchAngle;
         float roll = -movementInput.x * bankingAngle;
 

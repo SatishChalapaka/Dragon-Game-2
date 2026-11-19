@@ -463,4 +463,14 @@ public class EnemySpawner : MonoBehaviour
             }
         }
     }
+    public void ClearFormations()
+{
+    for (int i = activeFormations.Count - 1; i >= 0; i--)
+    {
+        if (activeFormations[i] != null)
+            Destroy(activeFormations[i].gameObject);
+    }
+
+    activeFormations.Clear();
+}
 }

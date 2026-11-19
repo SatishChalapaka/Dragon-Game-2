@@ -27,7 +27,6 @@ public class XPManager : MonoBehaviour
         }
 
         Instance = this;
-
         CurrentLevel = startingLevel;
         CurrentXP = 0;
         RequiredXP = baseRequiredXP;
@@ -47,10 +46,8 @@ public class XPManager : MonoBehaviour
         RewardPickup.RewardType type,
         int amount)
     {
-        if (type != RewardPickup.RewardType.Experience)
-            return;
-
-        AddXP(amount);
+        if (type == RewardPickup.RewardType.Experience)
+            AddXP(amount);
     }
 
     public void AddXP(int amount)
@@ -60,11 +57,9 @@ public class XPManager : MonoBehaviour
 
         CurrentXP += amount;
 
-        // Handle multiple level-ups if enough XP is collected.
         while (CurrentXP >= RequiredXP)
         {
             CurrentXP -= RequiredXP;
-
             LevelUp();
         }
 
@@ -79,13 +74,9 @@ public class XPManager : MonoBehaviour
     private void LevelUp()
     {
         CurrentLevel++;
-
-        RequiredXP = Mathf.CeilToInt(
-            RequiredXP * xpGrowthMultiplier
-        );
+        RequiredXP = Mathf.CeilToInt(RequiredXP * xpGrowthMultiplier);
 
         Debug.Log("DRAGON LEVEL UP! Level: " + CurrentLevel);
-
         OnLevelUp?.Invoke(CurrentLevel);
     }
 
@@ -96,5 +87,12 @@ public class XPManager : MonoBehaviour
         RequiredXP = baseRequiredXP;
 
         OnXPChanged?.Invoke(CurrentXP, RequiredXP);
+        OnLevelUp?.Invoke(CurrentLevel);
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 }

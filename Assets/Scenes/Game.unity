@@ -335,6 +335,56 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 35560807}
   m_CullTransparentMesh: 1
+--- !u!1 &59060601
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 59060602}
+  - component: {fileID: 59060603}
+  m_Layer: 0
+  m_Name: GameRestartManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &59060602
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 59060601}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1905948939}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &59060603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 59060601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b46cf617039c1324292cd15535c94446, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  waveManager: {fileID: 820110670}
+  enemySpawner: {fileID: 588806648}
+  poolManager: {fileID: 673977691}
+  dragonMovement: {fileID: 1983545457}
+  dragonRotation: {fileID: 1983545456}
+  dragonHealth: {fileID: 1983545464}
 --- !u!1 &113092352
 GameObject:
   m_ObjectHideFlags: 0
@@ -2014,6 +2064,7 @@ MonoBehaviour:
   resumeButton: {fileID: 1571076741}
   restartButton: {fileID: 207300100}
   mainMenuButton: {fileID: 1911241532}
+  gameRestartManager: {fileID: 59060603}
 --- !u!114 &646574381
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2030,6 +2081,7 @@ MonoBehaviour:
   gameplayHUD: {fileID: 334339031}
   settingsPanel: {fileID: 35560807}
   gameplayRoot: {fileID: 583239487}
+  gameRestartManager: {fileID: 59060603}
   playButton: {fileID: 137166274}
   settingsButton: {fileID: 1607231934}
   quitButton: {fileID: 968394208}
@@ -3270,7 +3322,7 @@ GameObject:
   - component: {fileID: 1465264578}
   - component: {fileID: 1465264580}
   m_Layer: 5
-  m_Name: GoldCounter
+  m_Name: GoldCounterText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4213,6 +4265,7 @@ Transform:
   - {fileID: 1892440676}
   - {fileID: 1544650677}
   - {fileID: 1655747047}
+  - {fileID: 59060602}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1911241530

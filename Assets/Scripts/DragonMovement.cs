@@ -13,15 +13,16 @@ public class DragonMovement : MonoBehaviour
 
     private Rigidbody rb;
     private Vector3 targetPosition;
+    private Vector3 startingPosition;
     private bool isFollowing;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        startingPosition = rb.position;
 
         rb.useGravity = false;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
-
         rb.constraints =
             RigidbodyConstraints.FreezePositionY |
             RigidbodyConstraints.FreezeRotation;
@@ -43,21 +44,25 @@ public class DragonMovement : MonoBehaviour
         moveSpeed = Mathf.Max(0f, speed);
     }
 
+    public void ResetMovement()
+    {
+        isFollowing = false;
+        targetPosition = startingPosition;
+        rb.position = startingPosition;
+        rb.velocity = Vector3.zero;
+    }
+
     private void FixedUpdate()
     {
         if (!isFollowing)
             return;
 
         targetPosition.x = Mathf.Clamp(
-            targetPosition.x,
-            minBounds.x,
-            maxBounds.x
+            targetPosition.x, minBounds.x, maxBounds.x
         );
 
         targetPosition.z = Mathf.Clamp(
-            targetPosition.z,
-            minBounds.y,
-            maxBounds.y
+            targetPosition.z, minBounds.y, maxBounds.y
         );
 
         Vector3 newPosition = Vector3.MoveTowards(

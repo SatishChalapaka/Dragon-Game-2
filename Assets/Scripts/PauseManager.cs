@@ -11,6 +11,9 @@ public class PauseManager : MonoBehaviour
     [SerializeField] private Button restartButton;
     [SerializeField] private Button mainMenuButton;
 
+    [Header("Restart Reference")]
+    [SerializeField] private GameRestartManager gameRestartManager;
+
     private GameStateManager gameStateManager;
     private bool isSubscribed;
 
@@ -35,10 +38,7 @@ public class PauseManager : MonoBehaviour
 
         if (gameStateManager == null)
         {
-            Debug.LogError(
-                "PauseManager: GameStateManager not found!",
-                this
-            );
+            Debug.LogError("PauseManager: GameStateManager not found!", this);
             return;
         }
 
@@ -74,13 +74,10 @@ public class PauseManager : MonoBehaviour
         if (gameStateManager == null)
             return;
 
-        if (gameStateManager.CurrentState !=
-            GameStateManager.GameState.Playing)
+        if (gameStateManager.CurrentState != GameStateManager.GameState.Playing)
             return;
 
-        gameStateManager.SetState(
-            GameStateManager.GameState.Paused
-        );
+        gameStateManager.SetState(GameStateManager.GameState.Paused);
     }
 
     public void ResumeGame()
@@ -88,20 +85,21 @@ public class PauseManager : MonoBehaviour
         if (gameStateManager == null)
             return;
 
-        if (gameStateManager.CurrentState !=
-            GameStateManager.GameState.Paused)
+        if (gameStateManager.CurrentState != GameStateManager.GameState.Paused)
             return;
 
-        gameStateManager.SetState(
-            GameStateManager.GameState.Playing
-        );
+        gameStateManager.SetState(GameStateManager.GameState.Playing);
     }
 
     public void RestartGame()
     {
-        Debug.Log(
-            "Restart will be implemented with the same-scene reset system."
-        );
+        if (gameRestartManager == null)
+        {
+            Debug.LogError("GameRestartManager is not assigned!", this);
+            return;
+        }
+
+        gameRestartManager.RestartGame();
     }
 
     public void ReturnToMainMenu()
@@ -109,13 +107,10 @@ public class PauseManager : MonoBehaviour
         if (gameStateManager == null)
             return;
 
-        gameStateManager.SetState(
-            GameStateManager.GameState.MainMenu
-        );
+        gameStateManager.SetState(GameStateManager.GameState.MainMenu);
     }
 
-    private void HandleGameStateChanged(
-        GameStateManager.GameState newState)
+    private void HandleGameStateChanged(GameStateManager.GameState newState)
     {
         if (pausePanel != null)
         {

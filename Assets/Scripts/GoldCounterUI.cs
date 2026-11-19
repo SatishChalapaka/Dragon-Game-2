@@ -32,17 +32,20 @@ public class GoldCounterUI : MonoBehaviour
             return;
 
         totalGold += amount;
-
         UpdateGoldUI();
 
         Debug.Log("Total Gold: " + totalGold);
     }
 
+    public void ResetGold()
+    {
+        totalGold = 0;
+        UpdateGoldUI();
+    }
+
     private void UpdateGoldUI()
     {
-        if (goldText == null)
-            return;
-
-        goldText.text = totalGold.ToString();
+        if (goldText != null)
+            goldText.text = totalGold.ToString();
     }
 }

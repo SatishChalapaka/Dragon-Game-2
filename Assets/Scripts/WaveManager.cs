@@ -42,6 +42,8 @@ public class WaveManager : MonoBehaviour
     private int activeEnemyCount;
 
     private bool isWaveActive;
+    private bool isSuspendedForMenu;
+    private int waveIndexToResume;
     private Coroutine waveCoroutine;
 
     public int CurrentWaveNumber => currentWaveIndex + 1;
@@ -68,14 +70,12 @@ public class WaveManager : MonoBehaviour
         }
 
         if (startAutomatically)
-        {
             StartNextWave();
-        }
     }
 
     public void StartNextWave()
     {
-        if (isWaveActive || waveCoroutine != null)
+        if (!enabled || isWaveActive || waveCoroutine != null)
             return;
 
         if (currentWaveIndex >= waves.Count - 1)
@@ -85,6 +85,93 @@ public class WaveManager : MonoBehaviour
         }
 
         waveCoroutine = StartCoroutine(StartWaveRoutine());
+    }
+
+    // Called when the player returns to the Main Menu.
+    public void PrepareForMainMenu()
+    {
+        if (isSuspendedForMenu)
+            return;
+
+        // If a wave is running, restart that same wave.
+        // If waiting for the next wave, continue with the next one.
+        if (isWaveActive)
+            waveIndexToResume = currentWaveIndex;
+        else
+            waveIndexToResume = currentWaveIndex + 1;
+
+        waveIndexToResume = Mathf.Clamp(
+            waveIndexToResume,
+            0,
+            waves.Count - 1
+        );
+
+        if (waveCoroutine != null)
+        {
+            StopCoroutine(waveCoroutine);
+            waveCoroutine = null;
+        }
+
+        isWaveActive = false;
+        activeEnemyCount = 0;
+        isSuspendedForMenu = true;
+
+        Debug.Log(
+            "Gameplay suspended. Will resume Wave " +
+            (waveIndexToResume + 1)
+        );
+    }
+
+    // Called when the player presses Play from the Main Menu.
+    public void ResumeAfterMainMenu()
+    {
+        if (!isSuspendedForMenu)
+            return;
+
+        currentWaveIndex = waveIndexToResume - 1;
+
+        activeEnemyCount = 0;
+        isWaveActive = false;
+        waveCoroutine = null;
+        isSuspendedForMenu = false;
+
+        Debug.Log(
+            "Resuming Wave " + (waveIndexToResume + 1)
+        );
+
+        StartNextWave();
+    }
+
+    // Used when the player presses Restart during a paused wave.
+    public void RestartCurrentWave()
+    {
+        if (waves.Count == 0)
+            return;
+
+        PrepareForMainMenu();
+        ResumeAfterMainMenu();
+    }
+
+    public void ResetWaves()
+    {
+        if (waveCoroutine != null)
+        {
+            StopCoroutine(waveCoroutine);
+            waveCoroutine = null;
+        }
+
+        currentWaveIndex = -1;
+        activeEnemyCount = 0;
+        isWaveActive = false;
+        isSuspendedForMenu = false;
+
+        Debug.Log("Wave progress reset.");
+    }
+
+    public void StartFromBeginning()
+    {
+        ResetWaves();
+        StartNextWave();
     }
 
     private IEnumerator StartWaveRoutine()
@@ -103,12 +190,7 @@ public class WaveManager : MonoBehaviour
         activeEnemyCount = 0;
 
         Debug.Log("Wave " + CurrentWaveNumber + " Started!");
-
         OnWaveStarted?.Invoke(CurrentWaveNumber);
-
-        // =====================================
-        // BOSS WAVE
-        // =====================================
 
         if (currentWave.isBossWave)
         {
@@ -123,10 +205,7 @@ public class WaveManager : MonoBehaviour
 
             if (!bossSpawned)
             {
-                Debug.LogError(
-                    "Boss wave could not start. Check the boss prefab and pool setup."
-                );
-
+                Debug.LogError("Boss wave could not start!");
                 isWaveActive = false;
                 waveCoroutine = null;
                 yield break;
@@ -134,10 +213,6 @@ public class WaveManager : MonoBehaviour
         }
         else
         {
-            // =====================================
-            // INDIVIDUAL ENEMIES
-            // =====================================
-
             for (int i = 0; i < currentWave.enemiesToSpawn; i++)
             {
                 enemySpawner.SpawnWaveEnemy(
@@ -154,10 +229,6 @@ public class WaveManager : MonoBehaviour
                     );
                 }
             }
-
-            // =====================================
-            // FORMATIONS
-            // =====================================
 
             for (int i = 0; i < currentWave.formationsToSpawn; i++)
             {
@@ -183,42 +254,31 @@ public class WaveManager : MonoBehaviour
             " finished spawning. Active enemies: " + activeEnemyCount
         );
 
-        // Wait until all tracked enemies, including the boss, return to pool.
         while (activeEnemyCount > 0)
-        {
             yield return null;
-        }
 
         isWaveActive = false;
 
         Debug.Log("Wave " + CurrentWaveNumber + " Completed!");
-
         OnWaveCompleted?.Invoke(CurrentWaveNumber);
 
         waveCoroutine = null;
 
-        // Automatically start the next wave.
         if (currentWaveIndex < waves.Count - 1)
-        {
             StartNextWave();
-        }
         else
-        {
             Debug.Log("Congratulations! All waves completed!");
-        }
     }
 
     public void RegisterEnemy()
     {
         activeEnemyCount++;
-
         Debug.Log("Active Enemies: " + activeEnemyCount);
     }
 
     public void UnregisterEnemy()
     {
         activeEnemyCount = Mathf.Max(0, activeEnemyCount - 1);
-
         Debug.Log("Active Enemies: " + activeEnemyCount);
     }
 }

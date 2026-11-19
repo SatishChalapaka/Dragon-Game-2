@@ -10,9 +10,7 @@ public class Health : MonoBehaviour, IDamageable
     private float baseMaxHealth;
 
     public float MaxHealth => maxHealth;
-
     public float CurrentHealth { get; private set; }
-
     public bool IsDead { get; private set; }
 
     public event Action<Health, float, float> OnHealthChanged;
@@ -22,11 +20,6 @@ public class Health : MonoBehaviour, IDamageable
     {
         baseMaxHealth = maxHealth;
         ResetHealth();
-         OnHealthChanged?.Invoke(
-            this,
-            CurrentHealth,
-            CurrentHealth
-        );
     }
 
     private void OnEnable()
@@ -37,7 +30,6 @@ public class Health : MonoBehaviour, IDamageable
     public void ApplyWaveDifficulty(float healthMultiplier)
     {
         maxHealth = baseMaxHealth * Mathf.Max(0.1f, healthMultiplier);
-
         ResetHealth();
     }
 
@@ -47,19 +39,12 @@ public class Health : MonoBehaviour, IDamageable
             return;
 
         float previousHealth = CurrentHealth;
-
         CurrentHealth = Mathf.Max(0f, CurrentHealth - damage);
 
-        OnHealthChanged?.Invoke(
-            this,
-            previousHealth,
-            CurrentHealth
-        );
+        OnHealthChanged?.Invoke(this, previousHealth, CurrentHealth);
 
         if (CurrentHealth <= 0f)
-        {
             Die();
-        }
 
         Debug.Log($"Current Health: {CurrentHealth}");
     }
@@ -70,23 +55,19 @@ public class Health : MonoBehaviour, IDamageable
             return;
 
         float previousHealth = CurrentHealth;
+        CurrentHealth = Mathf.Min(maxHealth, CurrentHealth + amount);
 
-        CurrentHealth = Mathf.Min(
-            maxHealth,
-            CurrentHealth + amount
-        );
-
-        OnHealthChanged?.Invoke(
-            this,
-            previousHealth,
-            CurrentHealth
-        );
+        OnHealthChanged?.Invoke(this, previousHealth, CurrentHealth);
     }
 
     public void ResetHealth()
     {
+        float previousHealth = CurrentHealth;
+
         CurrentHealth = maxHealth;
         IsDead = false;
+
+        OnHealthChanged?.Invoke(this, previousHealth, CurrentHealth);
     }
 
     private void Die()
@@ -95,7 +76,6 @@ public class Health : MonoBehaviour, IDamageable
             return;
 
         IsDead = true;
-
         OnDied?.Invoke(this);
     }
 }

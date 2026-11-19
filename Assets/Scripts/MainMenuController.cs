@@ -11,6 +11,7 @@ public class MainMenuController : MonoBehaviour
 
     [Header("Gameplay Reference")]
     [SerializeField] private GameObject gameplayRoot;
+    [SerializeField] private GameRestartManager gameRestartManager;
 
     [Header("Buttons")]
     [SerializeField] private Button playButton;
@@ -19,6 +20,7 @@ public class MainMenuController : MonoBehaviour
 
     private GameStateManager gameStateManager;
     private bool isSubscribed;
+    private bool hasEnteredGameplay;
 
     private void OnEnable()
     {
@@ -34,17 +36,14 @@ public class MainMenuController : MonoBehaviour
 
     private void Start()
     {
-        // Get the singleton after all active Awake methods have run.
         gameStateManager = GameStateManager.Instance;
 
         if (gameStateManager == null)
         {
             Debug.LogError(
-                "MainMenuController: GameStateManager instance not found! " +
-                "Check that GameStateManager is active and outside GameplayRoot.",
+                "MainMenuController: GameStateManager instance not found!",
                 this
             );
-
             return;
         }
 
@@ -113,16 +112,41 @@ public class MainMenuController : MonoBehaviour
         bool isMainMenu =
             newState == GameStateManager.GameState.MainMenu;
 
+        if (isMainMenu)
+        {
+            // Only clear objects if we are returning from gameplay.
+            if (hasEnteredGameplay && gameRestartManager != null)
+                gameRestartManager.PrepareForMainMenu();
+
+            if (mainMenuPanel != null)
+                mainMenuPanel.SetActive(true);
+
+            if (gameplayHUD != null)
+                gameplayHUD.SetActive(false);
+
+            if (gameplayRoot != null)
+                gameplayRoot.SetActive(false);
+
+            return;
+        }
+
         if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(isMainMenu);
+            mainMenuPanel.SetActive(false);
 
         if (gameplayHUD != null)
-            gameplayHUD.SetActive(!isMainMenu);
+            gameplayHUD.SetActive(true);
 
         if (gameplayRoot != null)
-            gameplayRoot.SetActive(!isMainMenu);
+            gameplayRoot.SetActive(true);
 
-        if (settingsPanel != null && !isMainMenu)
+        // On the first Play, WaveManager.Start handles automatic startup.
+        // On later Plays, resume the interrupted wave explicitly.
+        if (hasEnteredGameplay && gameRestartManager != null)
+            gameRestartManager.ResumeAfterMainMenu();
+
+        hasEnteredGameplay = true;
+
+        if (settingsPanel != null)
             settingsPanel.SetActive(false);
     }
 }
