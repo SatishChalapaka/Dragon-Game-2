@@ -40,18 +40,42 @@ public class EnemySpawner : MonoBehaviour
     private readonly List<Transform> activeFormations =
         new List<Transform>();
 
-    private void Start()
-    {
-        if (dragon == null || poolManager == null)
-        {
-            Debug.LogError("Dragon or ObjectPoolManager is missing!");
-            enabled = false;
-            return;
-        }
+    
+[Header("Reward Pool Settings")]
+[SerializeField] private List<GameObject> rewardPrefabs;
+[SerializeField] private int initialRewardPoolSize = 50;
 
-        PrewarmPrefabs(enemyPrefabs);
-        PrewarmPrefabs(formationEnemyPrefabs);
+    
+    
+private void Start()
+{
+    if (dragon == null || poolManager == null)
+    {
+        Debug.LogError("Dragon or ObjectPoolManager is missing!");
+        enabled = false;
+        return;
     }
+
+    PrewarmPrefabs(enemyPrefabs);
+    PrewarmPrefabs(formationEnemyPrefabs);
+
+    // Prewarm reward objects.
+    PrewarmPrefabs(rewardPrefabs, initialRewardPoolSize);
+}
+
+private void PrewarmPrefabs(
+    List<GameObject> prefabs,
+    int poolSize)
+{
+    foreach (GameObject prefab in prefabs)
+    {
+        if (prefab != null)
+        {
+            poolManager.Prewarm(prefab, poolSize);
+        }
+    }
+}
+
 
     private void Update()
     {
@@ -94,6 +118,31 @@ public class EnemySpawner : MonoBehaviour
         {
             enemyAttack.Initialize(dragon, poolManager);
         }
+
+        EnemyDeathHandler deathHandler =
+    enemy.GetComponent<EnemyDeathHandler>();
+
+if (deathHandler != null)
+{
+    deathHandler.Initialize(poolManager, dragon);
+}
+
+        EnemyCollisionHandler collisionHandler =
+            enemy.GetComponent<EnemyCollisionHandler>();
+
+        if (collisionHandler != null)
+        {
+            collisionHandler.Initialize(dragon);
+        }
+
+        EnemyMovement movement =
+            enemy.GetComponent<EnemyMovement>();
+
+        if (movement != null)
+        {
+            movement.ResetForSpawn();
+        }
+
     }
 
     private void SpawnEnemy()
@@ -162,9 +211,14 @@ public class EnemySpawner : MonoBehaviour
                 Quaternion.identity
             );
 
+
             if (enemy == null)
                 continue;
 
+            // Initialize pooled enemy once.
+            InitializeEnemy(enemy);
+
+            // Assign formation after resetting movement.
             EnemyMovement movement =
                 enemy.GetComponent<EnemyMovement>();
 
@@ -176,7 +230,6 @@ public class EnemySpawner : MonoBehaviour
                 );
             }
 
-            InitializeEnemy(enemy);
         }
     }
 

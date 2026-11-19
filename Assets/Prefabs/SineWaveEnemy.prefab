@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: 5892070986524565042}
   - component: {fileID: 5422242454742070903}
   - component: {fileID: 4097510189678091580}
+  - component: {fileID: 1418896334279673464}
+  - component: {fileID: -6255820860492713101}
   m_Layer: 8
   m_Name: SineWaveEnemy
   m_TagString: Untagged
@@ -29,14 +31,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 598432657227884863}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 20}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 268690480977619904}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1443256877213839253
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -90,9 +92,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   movementType: 1
-  moveSpeed: 4
+  moveSpeed: 3
   waveAmplitude: 3
-  waveFrequency: 5
+  waveFrequency: 2
   formationRoot: {fileID: 0}
   formationOffset: {x: 0, y: 0, z: 0}
   formationSpeed: 5
@@ -111,7 +113,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -129,6 +131,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: beed4d1870407f443a2bf0c542ad494e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1418896334279673464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 598432657227884863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1942b7fc5f77d9b45b021b2b2dc54429, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deathEffectPrefab: {fileID: 5880797563127281583, guid: 265d3a5ba69981a4698ceabcedf368b0,
+    type: 3}
+  goldPrefab: {fileID: 6043703837084083049, guid: 75b11833f7f641b4cb32de480e76f3b0,
+    type: 3}
+  goldDropAmount: 1
+  xpPrefab: {fileID: 4249306136516204543, guid: aba22e69c5375f543bddb012fd17a619,
+    type: 3}
+  xpDropAmount: 0
+  scatterRadius: 0.8
+  healthPrefab: {fileID: 4249306136516204543, guid: 07638be6ae640af4e87949c1f3c7db68,
+    type: 3}
+  healthDropChance: 0.15
+  healthRestoreAmount: 25
+--- !u!114 &-6255820860492713101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 598432657227884863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7ac34952ae64be42a77119dfe4cf98b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dragonLayers:
+    serializedVersion: 2
+    m_Bits: 8
+  collisionDamage: 10
+  behindDragonDistance: 20
+  aheadDragonDistance: 80
+  sideDistance: 30
 --- !u!1 &967017601791423581
 GameObject:
   m_ObjectHideFlags: 0
@@ -250,7 +296,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1677604648168920056}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0.91428936, z: -0.40506175, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -258,7 +304,7 @@ Transform:
   - {fileID: 5760851046864447180}
   - {fileID: 1726479758400548370}
   m_Father: {fileID: 6437663706549316617}
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 47.79, y: 180, z: 0}
 --- !u!95 &370419401449090957
 Animator:
   serializedVersion: 5

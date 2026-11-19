@@ -45,6 +45,8 @@ GameObject:
   - component: {fileID: 5892070986524565042}
   - component: {fileID: 5422242454742070903}
   - component: {fileID: 4097510189678091580}
+  - component: {fileID: 7543404600289879037}
+  - component: {fileID: -8706956253746753778}
   m_Layer: 8
   m_Name: FormationEnemy
   m_TagString: Untagged
@@ -142,7 +144,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -160,6 +162,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: beed4d1870407f443a2bf0c542ad494e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7543404600289879037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 598432657227884863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1942b7fc5f77d9b45b021b2b2dc54429, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deathEffectPrefab: {fileID: 4021103657954561961, guid: 5c755f9bc5253ea418e919994537dcc7,
+    type: 3}
+  goldPrefab: {fileID: 6043703837084083049, guid: 75b11833f7f641b4cb32de480e76f3b0,
+    type: 3}
+  goldDropAmount: 1
+  xpPrefab: {fileID: 4249306136516204543, guid: aba22e69c5375f543bddb012fd17a619,
+    type: 3}
+  xpDropAmount: 1
+  scatterRadius: 0.8
+  healthPrefab: {fileID: 4249306136516204543, guid: 07638be6ae640af4e87949c1f3c7db68,
+    type: 3}
+  healthDropChance: 0.15
+  healthRestoreAmount: 25
+--- !u!114 &-8706956253746753778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 598432657227884863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7ac34952ae64be42a77119dfe4cf98b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dragonLayers:
+    serializedVersion: 2
+    m_Bits: 8
+  collisionDamage: 10
+  behindDragonDistance: 20
+  aheadDragonDistance: 80
+  sideDistance: 30
 --- !u!1 &923740944300055447
 GameObject:
   m_ObjectHideFlags: 0

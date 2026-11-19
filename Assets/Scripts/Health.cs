@@ -8,7 +8,7 @@ public class Health : MonoBehaviour, IDamageable
     [SerializeField, Min(1f)] private float maxHealth = 100f;
 
     public float MaxHealth => maxHealth;
-    public float CurrentHealth { get; private set; }
+    [SerializeField] public float CurrentHealth { get; private set; }
 
     public bool IsDead { get; private set; }
 
@@ -77,4 +77,10 @@ public class Health : MonoBehaviour, IDamageable
 
         OnDied?.Invoke(this);
     }
+
+private void OnEnable()
+{
+    ResetHealth();
+}
+
 }

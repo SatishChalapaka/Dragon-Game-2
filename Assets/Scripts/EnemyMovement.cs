@@ -28,10 +28,12 @@ public class EnemyMovement : MonoBehaviour
 
     private Vector3 startPosition;
     private float waveTimer;
+    private MovementType defaultMovementType;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        defaultMovementType = movementType;
 
         rb.useGravity = false;
         rb.isKinematic = true;
@@ -58,32 +60,32 @@ public class EnemyMovement : MonoBehaviour
     }
 
     private void MoveStraight()
-{
-    Vector3 direction = Vector3.back;
+    {
+        Vector3 direction = Vector3.back;
 
-    rb.MovePosition(
-        rb.position + direction * moveSpeed * Time.fixedDeltaTime
-    );
+        rb.MovePosition(
+            rb.position + direction * moveSpeed * Time.fixedDeltaTime
+        );
 
-    RotateTowards(direction);
-}
+        RotateTowards(direction);
+    }
 
     private void MoveSineWave()
-{
-    waveTimer += Time.fixedDeltaTime;
+    {
+        waveTimer += Time.fixedDeltaTime;
 
-    float xOffset =
-        Mathf.Sin(waveTimer * waveFrequency) * waveAmplitude;
+        float xOffset =
+            Mathf.Sin(waveTimer * waveFrequency) * waveAmplitude;
 
-    Vector3 newPosition = startPosition +
-        new Vector3(xOffset, 0f, -moveSpeed * waveTimer);
+        Vector3 newPosition = startPosition +
+            new Vector3(xOffset, 0f, -moveSpeed * waveTimer);
 
-    Vector3 direction = newPosition - rb.position;
+        Vector3 direction = newPosition - rb.position;
 
-    rb.MovePosition(newPosition);
+        rb.MovePosition(newPosition);
 
-    //RotateTowards(direction);
-}
+        //RotateTowards(direction);
+    }
     private void MoveFormation()
     {
         if (formationRoot == null)
@@ -101,34 +103,50 @@ public class EnemyMovement : MonoBehaviour
         rb.MovePosition(newPosition);
         Vector3 direction = targetPosition - rb.position;
 
-RotateTowards(direction);
+        RotateTowards(direction);
     }
 
-    
-public void SetFormation(Transform root, Vector3 offset)
-{
-    movementType = MovementType.Formation;
-    formationRoot = root;
-    formationOffset = offset;
-}
+
+    public void SetFormation(Transform root, Vector3 offset)
+    {
+        movementType = MovementType.Formation;
+        formationRoot = root;
+        formationOffset = offset;
+    }
 
 
-private void RotateTowards(Vector3 direction)
-{
-    direction.y = 0f;
+    private void RotateTowards(Vector3 direction)
+    {
+        direction.y = 0f;
 
-    if (direction.sqrMagnitude < 0.001f)
-        return;
+        if (direction.sqrMagnitude < 0.001f)
+            return;
 
-    Quaternion targetRotation = Quaternion.LookRotation(direction);
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
 
-    rb.MoveRotation(
-        Quaternion.Slerp(
-            rb.rotation,
-            targetRotation,
-            8f * Time.fixedDeltaTime
-        )
-    );
-}
+        rb.MoveRotation(
+            Quaternion.Slerp(
+                rb.rotation,
+                targetRotation,
+                8f * Time.fixedDeltaTime
+            )
+        );
+    }
+
+    public void ResetForSpawn()
+    {
+        // Reset sine-wave movement.
+        waveTimer = 0f;
+
+        // Reset starting position.
+        startPosition = transform.position;
+
+        // Remove previous formation reference.
+        formationRoot = null;
+        formationOffset = Vector3.zero;
+
+        // Restore the prefab's original movement type.
+        movementType = defaultMovementType;
+    }
 
 }
