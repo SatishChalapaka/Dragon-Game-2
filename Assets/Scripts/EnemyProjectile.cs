@@ -18,6 +18,7 @@ public class EnemyProjectile : MonoBehaviour
 
     private Vector3 direction;
     private float remainingLifetime;
+    private float activeDamage;
 
     private void Awake()
     {
@@ -28,12 +29,18 @@ public class EnemyProjectile : MonoBehaviour
         rb.isKinematic = true;
         rb.collisionDetectionMode =
             CollisionDetectionMode.ContinuousSpeculative;
+
+        activeDamage = damage;
     }
 
-    public void Launch(Vector3 shootDirection)
+    public void Launch(
+        Vector3 shootDirection,
+        float damageMultiplier = 1f)
     {
         direction = shootDirection.normalized;
         remainingLifetime = lifetime;
+
+        activeDamage = damage * Mathf.Max(0.1f, damageMultiplier);
 
         rb.position = transform.position;
 
@@ -68,7 +75,7 @@ public class EnemyProjectile : MonoBehaviour
         if (health == null)
             return;
 
-        health.TakeDamage(damage);
+        health.TakeDamage(activeDamage);
 
         ReturnToPool();
     }
@@ -86,5 +93,6 @@ public class EnemyProjectile : MonoBehaviour
     {
         direction = Vector3.zero;
         remainingLifetime = 0f;
+        activeDamage = damage;
     }
 }

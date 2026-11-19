@@ -14,6 +14,7 @@ public class EnemyMovement : MonoBehaviour
     [Header("Enemy Settings")]
     [SerializeField] private MovementType movementType;
     [SerializeField] private float moveSpeed = 5f;
+    private float baseMoveSpeed;
 
     [Header("Sine Wave Settings")]
     [SerializeField] private float waveAmplitude = 2f;
@@ -31,15 +32,18 @@ public class EnemyMovement : MonoBehaviour
     private MovementType defaultMovementType;
 
     private void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-        defaultMovementType = movementType;
+{
+    rb = GetComponent<Rigidbody>();
 
-        rb.useGravity = false;
-        rb.isKinematic = true;
+    defaultMovementType = movementType;
 
-        startPosition = transform.position;
-    }
+    baseMoveSpeed = moveSpeed;
+
+    rb.useGravity = false;
+    rb.isKinematic = true;
+
+    startPosition = transform.position;
+}
 
     private void FixedUpdate()
     {
@@ -148,5 +152,8 @@ public class EnemyMovement : MonoBehaviour
         // Restore the prefab's original movement type.
         movementType = defaultMovementType;
     }
-
+    public void ApplyWaveDifficulty(float speedMultiplier)
+{
+    moveSpeed = baseMoveSpeed * Mathf.Max(0.1f, speedMultiplier);
+}
 }

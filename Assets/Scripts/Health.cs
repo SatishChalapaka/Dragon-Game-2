@@ -7,8 +7,11 @@ public class Health : MonoBehaviour, IDamageable
     [Header("Health Settings")]
     [SerializeField, Min(1f)] private float maxHealth = 100f;
 
+    private float baseMaxHealth;
+
     public float MaxHealth => maxHealth;
-    [SerializeField] public float CurrentHealth { get; private set; }
+
+    public float CurrentHealth { get; private set; }
 
     public bool IsDead { get; private set; }
 
@@ -17,31 +20,49 @@ public class Health : MonoBehaviour, IDamageable
 
     private void Awake()
     {
+        baseMaxHealth = maxHealth;
+        ResetHealth();
+         OnHealthChanged?.Invoke(
+            this,
+            CurrentHealth,
+            CurrentHealth
+        );
+    }
+
+    private void OnEnable()
+    {
         ResetHealth();
     }
 
-   public void TakeDamage(float damage)
-{
-    if (IsDead || damage <= 0f)
-        return;
-
-    float previousHealth = CurrentHealth;
-
-    CurrentHealth = Mathf.Max(0f, CurrentHealth - damage);
-
-    OnHealthChanged?.Invoke(
-        this,
-        previousHealth,
-        CurrentHealth
-    );
-
-    if (CurrentHealth <= 0f)
+    public void ApplyWaveDifficulty(float healthMultiplier)
     {
-        Die();
+        maxHealth = baseMaxHealth * Mathf.Max(0.1f, healthMultiplier);
+
+        ResetHealth();
     }
 
-    Debug.Log($"Current Health: {CurrentHealth}");
-}
+    public void TakeDamage(float damage)
+    {
+        if (IsDead || damage <= 0f)
+            return;
+
+        float previousHealth = CurrentHealth;
+
+        CurrentHealth = Mathf.Max(0f, CurrentHealth - damage);
+
+        OnHealthChanged?.Invoke(
+            this,
+            previousHealth,
+            CurrentHealth
+        );
+
+        if (CurrentHealth <= 0f)
+        {
+            Die();
+        }
+
+        Debug.Log($"Current Health: {CurrentHealth}");
+    }
 
     public void Heal(float amount)
     {
@@ -77,10 +98,4 @@ public class Health : MonoBehaviour, IDamageable
 
         OnDied?.Invoke(this);
     }
-
-private void OnEnable()
-{
-    ResetHealth();
-}
-
 }

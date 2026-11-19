@@ -48,6 +48,7 @@ GameObject:
   - component: {fileID: 7800101420930246958}
   - component: {fileID: 7023201732066281999}
   - component: {fileID: 96066085872269143}
+  - component: {fileID: -1495712351633591371}
   m_Layer: 8
   m_Name: ShootingEnemy
   m_TagString: Untagged
@@ -225,9 +226,21 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   collisionDamage: 10
-  behindDragonDistance: 20
+  behindDragonDistance: 10
   aheadDragonDistance: 80
   sideDistance: 30
+--- !u!114 &-1495712351633591371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 598432657227884863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b40990dbf8944974f9650f6d31881b5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &923740944300055447
 GameObject:
   m_ObjectHideFlags: 0

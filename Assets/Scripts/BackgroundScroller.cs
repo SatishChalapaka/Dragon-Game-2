@@ -71,7 +71,7 @@ public class BackgroundScroller : MonoBehaviour
                 continue;
 
             if (segment.position.z <=
-                dragon.position.z - layer.segmentLength)
+                this.transform.position.z - layer.segmentLength)
             {
                 Vector3 position = segment.position;
 

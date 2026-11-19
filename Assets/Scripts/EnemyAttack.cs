@@ -8,15 +8,18 @@ public class EnemyAttack : MonoBehaviour
         Single,
         Spread
     }
+
     public enum AttackDirection
-{
-    ForwardOnly,
-    BackwardOnly,
-    TowardsDragon,
-    AllDirections
-}
-[Header("Attack Direction")]
-[SerializeField] private AttackDirection attackDirection;
+    {
+        ForwardOnly,
+        BackwardOnly,
+        TowardsDragon,
+        AllDirections
+    }
+
+    [Header("Attack Direction")]
+    [SerializeField] private AttackDirection attackDirection;
+
     [Header("References")]
     [SerializeField] private Transform firePoint;
     [SerializeField] private GameObject projectilePrefab;
@@ -31,6 +34,7 @@ public class EnemyAttack : MonoBehaviour
     private ObjectPoolManager poolManager;
 
     private float attackTimer;
+    private float damageMultiplier = 1f;
 
     public void Initialize(
         Transform dragonTarget,
@@ -39,6 +43,12 @@ public class EnemyAttack : MonoBehaviour
         dragon = dragonTarget;
         poolManager = objectPool;
         attackTimer = 0f;
+        damageMultiplier = 1f;
+    }
+
+    public void ApplyWaveDifficulty(float newDamageMultiplier)
+    {
+        damageMultiplier = Mathf.Max(0.1f, newDamageMultiplier);
     }
 
     private void Update()
@@ -56,53 +66,56 @@ public class EnemyAttack : MonoBehaviour
         }
     }
 
-    
-private void Attack()
-{
-    Vector3 direction = GetAttackDirection();
-
-    if (attackDirection == AttackDirection.TowardsDragon &&
-        direction == Vector3.zero)
-        return;
-
-    switch (attackDirection)
+    private void Attack()
     {
-        case AttackDirection.AllDirections:
-            FireAllDirections();
-            break;
+        Vector3 direction = GetAttackDirection();
 
-        default:
-            switch (attackPattern)
-            {
-                case AttackPattern.Single:
-                    FireProjectile(direction);
-                    break;
+        if (attackDirection == AttackDirection.TowardsDragon &&
+            direction == Vector3.zero)
+            return;
 
-                case AttackPattern.Spread:
-                    FireSpread(direction);
-                    break;
-            }
-            break;
+        switch (attackDirection)
+        {
+            case AttackDirection.AllDirections:
+                FireAllDirections();
+                break;
+
+            default:
+                switch (attackPattern)
+                {
+                    case AttackPattern.Single:
+                        FireProjectile(direction);
+                        break;
+
+                    case AttackPattern.Spread:
+                        FireSpread(direction);
+                        break;
+                }
+                break;
+        }
     }
-}
 
     private void FireAllDirections()
-{
-    int count = Mathf.Max(1, spreadProjectileCount);
-
-    for (int i = 0; i < count; i++)
     {
-        float angle = (360f / count) * i;
+        int count = Mathf.Max(1, spreadProjectileCount);
 
-        Vector3 direction =
-            Quaternion.AngleAxis(angle, Vector3.up) *
-            transform.forward;
+        for (int i = 0; i < count; i++)
+        {
+            float angle = (360f / count) * i;
 
-        FireProjectile(direction);
+            Vector3 direction =
+                Quaternion.AngleAxis(angle, Vector3.up) *
+                transform.forward;
+
+            FireProjectile(direction);
+        }
     }
-}
+
     private void FireProjectile(Vector3 direction)
     {
+        if (direction.sqrMagnitude < 0.001f)
+            return;
+
         GameObject projectile = poolManager.Get(
             projectilePrefab,
             firePoint.position,
@@ -116,7 +129,12 @@ private void Attack()
             projectile.GetComponent<EnemyProjectile>();
 
         if (enemyProjectile != null)
-            enemyProjectile.Launch(direction);
+        {
+            enemyProjectile.Launch(
+                direction,
+                damageMultiplier
+            );
+        }
     }
 
     private void FireSpread(Vector3 direction)
@@ -137,36 +155,33 @@ private void Attack()
         }
     }
 
-
-private Vector3 GetAttackDirection()
-{
-    switch (attackDirection)
+    private Vector3 GetAttackDirection()
     {
-        case AttackDirection.ForwardOnly:
-            return transform.forward;
+        switch (attackDirection)
+        {
+            case AttackDirection.ForwardOnly:
+                return transform.forward;
 
-        case AttackDirection.BackwardOnly:
-            return -transform.forward;
+            case AttackDirection.BackwardOnly:
+                return -transform.forward;
 
-        case AttackDirection.TowardsDragon:
+            case AttackDirection.TowardsDragon:
 
-            // Don't attack if the dragon has passed this enemy.
-            if (dragon.position.z > transform.position.z)
+                // Don't attack if the dragon has passed this enemy.
+                if (dragon.position.z > transform.position.z)
+                    return Vector3.zero;
+
+                Vector3 direction =
+                    dragon.position - firePoint.position;
+
+                direction.y = 0f;
+
+                return direction.normalized;
+
+            case AttackDirection.AllDirections:
                 return Vector3.zero;
+        }
 
-            Vector3 direction =
-                dragon.position - firePoint.position;
-
-            direction.y = 0f;
-
-            return direction.normalized;
-
-        case AttackDirection.AllDirections:
-            return Vector3.zero;
+        return transform.forward;
     }
-
-    return transform.forward;
-}
-
-
 }

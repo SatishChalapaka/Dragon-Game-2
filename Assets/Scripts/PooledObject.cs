@@ -1,4 +1,4 @@
-
+using System;
 using UnityEngine;
 
 public class PooledObject : MonoBehaviour
@@ -8,7 +8,7 @@ public class PooledObject : MonoBehaviour
     public GameObject Prefab { get; private set; }
 
     public bool IsInPool { get; private set; }
-
+public static event Action<PooledObject> OnReturnedToPool;
     public void Initialize(
         ObjectPoolManager manager,
         GameObject prefab)
@@ -30,14 +30,19 @@ public class PooledObject : MonoBehaviour
         IsInPool = true;
     }
 
-    public void ReturnToPool()
-    {
-        if (IsInPool)
-            return;
+    
+public void ReturnToPool()
+{
+    if (IsInPool)
+        return;
 
-        if (poolManager != null)
-        {
-            poolManager.ReturnToPool(this);
-        }
+    // Notify the wave tracker before the object is disabled.
+    OnReturnedToPool?.Invoke(this);
+
+    if (poolManager != null)
+    {
+        poolManager.ReturnToPool(this);
     }
+}
+
 }
