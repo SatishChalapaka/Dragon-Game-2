@@ -8,21 +8,13 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private Transform dragon;
     [SerializeField] private ObjectPoolManager poolManager;
 
-    [Header("Individual Enemies")]
+    [Header("Legacy Enemy Lists")]
     [SerializeField] private List<GameObject> enemyPrefabs;
-
-    [Header("Formation Enemies")]
     [SerializeField] private List<GameObject> formationEnemyPrefabs;
-    [SerializeField] private float formationMoveSpeed = 5f;
-
-    [Header("Boss Settings")]
-    [SerializeField] private GameObject bossPrefab;
-
-    [Header("Spawn Settings")]
-    [SerializeField] private float spawnDistance = 30f;
-    [SerializeField] private Vector2 spawnXRange = new Vector2(-8f, 8f);
 
     [Header("Formation Settings")]
+    [SerializeField] private float formationMoveSpeed = 5f;
+
     [SerializeField]
     private Vector3[] formationOffsets =
     {
@@ -32,6 +24,10 @@ public class EnemySpawner : MonoBehaviour
         new Vector3(-4f, 0f, 4f),
         new Vector3(4f, 0f, 4f)
     };
+
+    [Header("Spawn Settings")]
+    [SerializeField] private float spawnDistance = 30f;
+    [SerializeField] private Vector2 spawnXRange = new Vector2(-8f, 8f);
 
     [Header("Pool Settings")]
     [SerializeField] private int initialPoolSize = 10;
@@ -55,11 +51,6 @@ public class EnemySpawner : MonoBehaviour
         PrewarmPrefabs(enemyPrefabs);
         PrewarmPrefabs(formationEnemyPrefabs);
         PrewarmPrefabs(rewardPrefabs, initialRewardPoolSize);
-
-        if (bossPrefab != null)
-        {
-            poolManager.Prewarm(bossPrefab, 1);
-        }
     }
 
     private void Update()
@@ -68,17 +59,31 @@ public class EnemySpawner : MonoBehaviour
     }
 
     // =========================================
-    // PUBLIC WAVE SPAWNING METHODS
+    // MANUAL PREFAB PREWARMING
+    // =========================================
+
+    public void PrewarmWavePrefab(GameObject prefab, int amount)
+    {
+        if (prefab == null || poolManager == null)
+            return;
+
+        poolManager.Prewarm(prefab, Mathf.Max(1, amount));
+    }
+
+    // =========================================
+    // WAVE ENEMY SPAWNING
     // =========================================
 
     public void SpawnWaveEnemy(
         WaveManager waveManager,
+        GameObject prefab,
         float healthMultiplier,
         float speedMultiplier,
         float attackMultiplier)
     {
         SpawnEnemy(
             waveManager,
+            prefab,
             healthMultiplier,
             speedMultiplier,
             attackMultiplier
@@ -87,6 +92,7 @@ public class EnemySpawner : MonoBehaviour
 
     public void SpawnWaveFormation(
         WaveManager waveManager,
+        GameObject prefab,
         float healthMultiplier,
         float speedMultiplier,
         float attackMultiplier,
@@ -94,6 +100,7 @@ public class EnemySpawner : MonoBehaviour
     {
         SpawnFormation(
             waveManager,
+            prefab,
             healthMultiplier,
             speedMultiplier,
             attackMultiplier,
@@ -101,8 +108,13 @@ public class EnemySpawner : MonoBehaviour
         );
     }
 
+    // =========================================
+    // BOSS SPAWNING
+    // =========================================
+
     public bool SpawnWaveBoss(
         WaveManager waveManager,
+        GameObject bossPrefab,
         float healthMultiplier,
         float speedMultiplier,
         float attackMultiplier)
@@ -147,16 +159,17 @@ public class EnemySpawner : MonoBehaviour
         {
             Debug.LogError("BossMovement is missing on the boss prefab!");
 
-            PooledObject pooledObject =
-                boss.GetComponent<PooledObject>();
-
-            if (pooledObject != null)
-                pooledObject.ReturnToPool();
-
+            ReturnToPool(boss);
             return false;
         }
 
         bossMovement.Initialize(dragon, speedMultiplier);
+
+        BossAttackController attackController =
+            boss.GetComponent<BossAttackController>();
+
+        if (attackController != null)
+            attackController.Initialize(dragon);
 
         EnemyWaveTracker tracker =
             boss.GetComponent<EnemyWaveTracker>();
@@ -165,20 +178,27 @@ public class EnemySpawner : MonoBehaviour
         {
             Debug.LogError("EnemyWaveTracker is missing on the boss prefab!");
 
-            PooledObject pooledObject =
-                boss.GetComponent<PooledObject>();
-
-            if (pooledObject != null)
-                pooledObject.ReturnToPool();
-
+            ReturnToPool(boss);
             return false;
         }
 
         tracker.Register(waveManager);
 
-        Debug.Log("Boss spawned successfully!");
+        Debug.Log("Boss spawned successfully: " + bossPrefab.name);
 
         return true;
+    }
+
+    private void ReturnToPool(GameObject target)
+    {
+        if (target == null)
+            return;
+
+        PooledObject pooledObject =
+            target.GetComponent<PooledObject>();
+
+        if (pooledObject != null)
+            pooledObject.ReturnToPool();
     }
 
     // =========================================
@@ -187,17 +207,16 @@ public class EnemySpawner : MonoBehaviour
 
     private void PrewarmPrefabs(List<GameObject> prefabs)
     {
-        foreach (GameObject prefab in prefabs)
-        {
-            if (prefab != null)
-                poolManager.Prewarm(prefab, initialPoolSize);
-        }
+        PrewarmPrefabs(prefabs, initialPoolSize);
     }
 
     private void PrewarmPrefabs(
         List<GameObject> prefabs,
         int poolSize)
     {
+        if (prefabs == null)
+            return;
+
         foreach (GameObject prefab in prefabs)
         {
             if (prefab != null)
@@ -218,33 +237,25 @@ public class EnemySpawner : MonoBehaviour
             enemy.GetComponent<EnemyAttack>();
 
         if (enemyAttack != null)
-        {
             enemyAttack.Initialize(dragon, poolManager);
-        }
 
         EnemyDeathHandler deathHandler =
             enemy.GetComponent<EnemyDeathHandler>();
 
         if (deathHandler != null)
-        {
             deathHandler.Initialize(poolManager, dragon);
-        }
 
         EnemyCollisionHandler collisionHandler =
             enemy.GetComponent<EnemyCollisionHandler>();
 
         if (collisionHandler != null)
-        {
             collisionHandler.Initialize(dragon);
-        }
 
         EnemyMovement movement =
             enemy.GetComponent<EnemyMovement>();
 
         if (movement != null)
-        {
             movement.ResetForSpawn();
-        }
     }
 
     // =========================================
@@ -253,17 +264,11 @@ public class EnemySpawner : MonoBehaviour
 
     private void SpawnEnemy(
         WaveManager waveManager,
+        GameObject prefab,
         float healthMultiplier,
         float speedMultiplier,
         float attackMultiplier)
     {
-        if (enemyPrefabs.Count == 0)
-            return;
-
-        GameObject prefab = enemyPrefabs[
-            Random.Range(0, enemyPrefabs.Count)
-        ];
-
         if (prefab == null)
             return;
 
@@ -305,19 +310,14 @@ public class EnemySpawner : MonoBehaviour
 
     private void SpawnFormation(
         WaveManager waveManager,
+        GameObject prefab,
         float healthMultiplier,
         float speedMultiplier,
         float attackMultiplier,
         int enemiesPerFormation)
     {
-        if (formationEnemyPrefabs.Count == 0)
-            return;
-
-        GameObject prefab = formationEnemyPrefabs[
-            Random.Range(0, formationEnemyPrefabs.Count)
-        ];
-
-        if (prefab == null)
+        if (prefab == null || formationOffsets == null ||
+            formationOffsets.Length == 0)
             return;
 
         int formationCount = Mathf.Clamp(
@@ -416,25 +416,19 @@ public class EnemySpawner : MonoBehaviour
         Health health = enemy.GetComponent<Health>();
 
         if (health != null)
-        {
             health.ApplyWaveDifficulty(healthMultiplier);
-        }
 
         EnemyMovement movement =
             enemy.GetComponent<EnemyMovement>();
 
         if (movement != null)
-        {
             movement.ApplyWaveDifficulty(speedMultiplier);
-        }
 
         EnemyAttack enemyAttack =
             enemy.GetComponent<EnemyAttack>();
 
         if (enemyAttack != null)
-        {
             enemyAttack.ApplyWaveDifficulty(attackMultiplier);
-        }
     }
 
     // =========================================
@@ -443,6 +437,9 @@ public class EnemySpawner : MonoBehaviour
 
     private void MoveFormations()
     {
+        if (dragon == null)
+            return;
+
         for (int i = activeFormations.Count - 1; i >= 0; i--)
         {
             Transform root = activeFormations[i];
@@ -463,14 +460,15 @@ public class EnemySpawner : MonoBehaviour
             }
         }
     }
-    public void ClearFormations()
-{
-    for (int i = activeFormations.Count - 1; i >= 0; i--)
-    {
-        if (activeFormations[i] != null)
-            Destroy(activeFormations[i].gameObject);
-    }
 
-    activeFormations.Clear();
-}
+    public void ClearFormations()
+    {
+        for (int i = activeFormations.Count - 1; i >= 0; i--)
+        {
+            if (activeFormations[i] != null)
+                Destroy(activeFormations[i].gameObject);
+        }
+
+        activeFormations.Clear();
+    }
 }
