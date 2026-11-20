@@ -88,7 +88,7 @@ public class EnemyMovement : MonoBehaviour
 
         rb.MovePosition(newPosition);
 
-        //RotateTowards(direction);
+        RotateTowards(direction);
     }
     private void MoveFormation()
     {
