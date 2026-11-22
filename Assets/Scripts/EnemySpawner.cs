@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(EnemySpawnDirector))]
 public class EnemySpawner : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Transform dragon;
     [SerializeField] private ObjectPoolManager poolManager;
+    [SerializeField] private EnemySpawnDirector spawnDirector;
 
     [Header("Legacy Enemy Lists")]
     [SerializeField] private List<GameObject> enemyPrefabs;
@@ -26,8 +28,10 @@ public class EnemySpawner : MonoBehaviour
     };
 
     [Header("Spawn Settings")]
-    [SerializeField] private float spawnDistance = 30f;
-    [SerializeField] private Vector2 spawnXRange = new Vector2(-8f, 8f);
+    [SerializeField] private float fixedSpawnZ = 20f;
+    [SerializeField]
+    private Vector2 spawnXRange =
+        new Vector2(-4f, 4f);
 
     [Header("Pool Settings")]
     [SerializeField] private int initialPoolSize = 10;
@@ -43,7 +47,23 @@ public class EnemySpawner : MonoBehaviour
     {
         if (dragon == null || poolManager == null)
         {
-            Debug.LogError("Dragon or ObjectPoolManager is missing!");
+            Debug.LogError(
+                "Dragon or ObjectPoolManager is missing!"
+            );
+
+            enabled = false;
+            return;
+        }
+
+        if (spawnDirector == null)
+            spawnDirector = GetComponent<EnemySpawnDirector>();
+
+        if (spawnDirector == null)
+        {
+            Debug.LogError(
+                "EnemySpawnDirector is missing!"
+            );
+
             enabled = false;
             return;
         }
@@ -59,7 +79,7 @@ public class EnemySpawner : MonoBehaviour
     }
 
     // =========================================
-    // MANUAL PREFAB PREWARMING
+    // PREWARM WAVE PREFAB
     // =========================================
 
     public void PrewarmWavePrefab(GameObject prefab, int amount)
@@ -71,7 +91,7 @@ public class EnemySpawner : MonoBehaviour
     }
 
     // =========================================
-    // WAVE ENEMY SPAWNING
+    // WAVE ENEMY
     // =========================================
 
     public void SpawnWaveEnemy(
@@ -89,6 +109,10 @@ public class EnemySpawner : MonoBehaviour
             attackMultiplier
         );
     }
+
+    // =========================================
+    // WAVE FORMATION
+    // =========================================
 
     public void SpawnWaveFormation(
         WaveManager waveManager,
@@ -125,11 +149,14 @@ public class EnemySpawner : MonoBehaviour
             return false;
         }
 
-        Vector3 spawnPosition = new Vector3(
-            dragon.position.x,
-            dragon.position.y,
-            dragon.position.z + spawnDistance
-        );
+        if (!TryFindSpawnPosition(out Vector3 spawnPosition))
+        {
+            Debug.LogWarning(
+                "No safe spawn position available for boss!"
+            );
+
+            return false;
+        }
 
         GameObject boss = poolManager.Get(
             bossPrefab,
@@ -138,10 +165,7 @@ public class EnemySpawner : MonoBehaviour
         );
 
         if (boss == null)
-        {
-            Debug.LogError("Could not get boss from ObjectPoolManager!");
             return false;
-        }
 
         InitializeEnemy(boss);
 
@@ -157,7 +181,9 @@ public class EnemySpawner : MonoBehaviour
 
         if (bossMovement == null)
         {
-            Debug.LogError("BossMovement is missing on the boss prefab!");
+            Debug.LogError(
+                "BossMovement is missing on the boss prefab!"
+            );
 
             ReturnToPool(boss);
             return false;
@@ -176,11 +202,18 @@ public class EnemySpawner : MonoBehaviour
 
         if (tracker == null)
         {
-            Debug.LogError("EnemyWaveTracker is missing on the boss prefab!");
+            Debug.LogError(
+                "EnemyWaveTracker is missing on the boss prefab!"
+            );
 
             ReturnToPool(boss);
             return false;
         }
+
+        spawnDirector.RegisterEnemy(
+            boss.transform,
+            spawnPosition
+        );
 
         tracker.Register(waveManager);
 
@@ -188,6 +221,10 @@ public class EnemySpawner : MonoBehaviour
 
         return true;
     }
+
+    // =========================================
+    // RETURN TO POOL
+    // =========================================
 
     private void ReturnToPool(GameObject target)
     {
@@ -202,7 +239,7 @@ public class EnemySpawner : MonoBehaviour
     }
 
     // =========================================
-    // POOL PREWARMING
+    // PREWARM
     // =========================================
 
     private void PrewarmPrefabs(List<GameObject> prefabs)
@@ -225,7 +262,7 @@ public class EnemySpawner : MonoBehaviour
     }
 
     // =========================================
-    // ENEMY INITIALIZATION
+    // INITIALIZE ENEMY
     // =========================================
 
     private void InitializeEnemy(GameObject enemy)
@@ -259,7 +296,21 @@ public class EnemySpawner : MonoBehaviour
     }
 
     // =========================================
-    // INDIVIDUAL ENEMY SPAWNING
+    // FIND SPAWN POSITION
+    // =========================================
+
+    private bool TryFindSpawnPosition(out Vector3 spawnPosition)
+    {
+        return spawnDirector.TryGetSpawnPosition(
+            spawnXRange,
+            dragon.position.y,
+            fixedSpawnZ,
+            out spawnPosition
+        );
+    }
+
+    // =========================================
+    // NORMAL ENEMY SPAWNING
     // =========================================
 
     private void SpawnEnemy(
@@ -272,16 +323,15 @@ public class EnemySpawner : MonoBehaviour
         if (prefab == null)
             return;
 
-        float randomX = Random.Range(
-            spawnXRange.x,
-            spawnXRange.y
-        );
+        if (!TryFindSpawnPosition(out Vector3 spawnPosition))
+        {
+            Debug.LogWarning(
+                "Enemy spawn rejected: no safe position or screen is full. " +
+                prefab.name
+            );
 
-        Vector3 spawnPosition = new Vector3(
-            dragon.position.x + randomX,
-            dragon.position.y,
-            dragon.position.z + spawnDistance
-        );
+            return;
+        }
 
         GameObject enemy = poolManager.Get(
             prefab,
@@ -301,6 +351,11 @@ public class EnemySpawner : MonoBehaviour
             attackMultiplier
         );
 
+        spawnDirector.RegisterEnemy(
+            enemy.transform,
+            spawnPosition
+        );
+
         RegisterWaveEnemy(enemy, waveManager, prefab);
     }
 
@@ -316,7 +371,8 @@ public class EnemySpawner : MonoBehaviour
         float attackMultiplier,
         int enemiesPerFormation)
     {
-        if (prefab == null || formationOffsets == null ||
+        if (prefab == null ||
+            formationOffsets == null ||
             formationOffsets.Length == 0)
             return;
 
@@ -326,11 +382,14 @@ public class EnemySpawner : MonoBehaviour
             formationOffsets.Length
         );
 
-        Vector3 rootPosition = new Vector3(
-            dragon.position.x,
-            dragon.position.y,
-            dragon.position.z + spawnDistance
-        );
+        if (!TryFindSpawnPosition(out Vector3 rootPosition))
+        {
+            Debug.LogWarning(
+                "Formation spawn rejected: no safe position available."
+            );
+
+            return;
+        }
 
         GameObject rootObject =
             new GameObject("EnemyFormationRoot");
@@ -339,12 +398,17 @@ public class EnemySpawner : MonoBehaviour
 
         activeFormations.Add(rootObject.transform);
 
+        int spawnedCount = 0;
+
         for (int i = 0; i < formationCount; i++)
         {
             Vector3 offset = formationOffsets[i];
 
             Vector3 spawnPosition =
                 rootObject.transform.TransformPoint(offset);
+
+            if (!spawnDirector.IsSpawnPositionAvailable(spawnPosition))
+                continue;
 
             GameObject enemy = poolManager.Get(
                 prefab,
@@ -364,6 +428,11 @@ public class EnemySpawner : MonoBehaviour
                 attackMultiplier
             );
 
+            spawnDirector.RegisterEnemy(
+                enemy.transform,
+                spawnPosition
+            );
+
             RegisterWaveEnemy(enemy, waveManager, prefab);
 
             EnemyMovement movement =
@@ -376,11 +445,19 @@ public class EnemySpawner : MonoBehaviour
                     offset
                 );
             }
+
+            spawnedCount++;
+        }
+
+        if (spawnedCount == 0)
+        {
+            activeFormations.Remove(rootObject.transform);
+            Destroy(rootObject);
         }
     }
 
     // =========================================
-    // WAVE ENEMY REGISTRATION
+    // WAVE TRACKING
     // =========================================
 
     private void RegisterWaveEnemy(
@@ -404,7 +481,7 @@ public class EnemySpawner : MonoBehaviour
     }
 
     // =========================================
-    // DIFFICULTY SCALING
+    // DIFFICULTY
     // =========================================
 
     private void ApplyEnemyDifficulty(
@@ -437,9 +514,6 @@ public class EnemySpawner : MonoBehaviour
 
     private void MoveFormations()
     {
-        if (dragon == null)
-            return;
-
         for (int i = activeFormations.Count - 1; i >= 0; i--)
         {
             Transform root = activeFormations[i];
@@ -453,13 +527,17 @@ public class EnemySpawner : MonoBehaviour
             root.position +=
                 Vector3.back * formationMoveSpeed * Time.deltaTime;
 
-            if (root.position.z < dragon.position.z - 20f)
+            if (root.position.z < fixedSpawnZ - 50f)
             {
                 Destroy(root.gameObject);
                 activeFormations.RemoveAt(i);
             }
         }
     }
+
+    // =========================================
+    // CLEAR FORMATIONS
+    // =========================================
 
     public void ClearFormations()
     {

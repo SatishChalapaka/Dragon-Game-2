@@ -10,34 +10,52 @@ public class EnemyWorldHealthBar : MonoBehaviour
     [SerializeField] private Transform healthBarVisual;
 
     [Header("Position Settings")]
-    [SerializeField] private Vector3 headOffset =
+    [SerializeField]
+    private Vector3 headOffset =
         new Vector3(0f, 1.5f, 0f);
 
     private Camera mainCamera;
+    private CanvasGroup canvasGroup;
+
+    private bool hasBeenHit;
 
     private void Awake()
     {
         if (enemyHealth == null)
             enemyHealth = GetComponentInParent<Health>();
 
+        if (healthBarVisual != null)
+        {
+            canvasGroup =
+                healthBarVisual.GetComponent<CanvasGroup>();
+
+            if (canvasGroup == null)
+                canvasGroup =
+                    healthBarVisual.gameObject.AddComponent<CanvasGroup>();
+        }
+
         mainCamera = Camera.main;
     }
 
     private void OnEnable()
     {
-        if (enemyHealth != null)
-            enemyHealth.OnHealthChanged += UpdateHealthBar;
-    }
+        hasBeenHit = false;
 
-    private void Start()
-    {
-        RefreshHealthBar();
+        if (enemyHealth != null)
+        {
+            enemyHealth.OnHealthChanged += UpdateHealthBar;
+            RefreshHealthBar();
+        }
+
+        HideHealthBar();
     }
 
     private void OnDisable()
     {
         if (enemyHealth != null)
             enemyHealth.OnHealthChanged -= UpdateHealthBar;
+
+        HideHealthBar();
     }
 
     private void LateUpdate()
@@ -45,14 +63,14 @@ public class EnemyWorldHealthBar : MonoBehaviour
         if (mainCamera == null)
             mainCamera = Camera.main;
 
-        if (mainCamera == null || healthBarVisual == null)
+        if (mainCamera == null ||
+            healthBarVisual == null ||
+            enemyHealth == null)
             return;
 
-        // Keep the health bar above the enemy.
         healthBarVisual.position =
-            transform.position + headOffset;
+            enemyHealth.transform.position + headOffset;
 
-        // Make the health bar face the camera.
         healthBarVisual.rotation =
             mainCamera.transform.rotation;
     }
@@ -62,11 +80,19 @@ public class EnemyWorldHealthBar : MonoBehaviour
         float previousHealth,
         float currentHealth)
     {
-        if (healthSlider == null)
-            return;
+        if (healthSlider != null)
+        {
+            healthSlider.maxValue = health.MaxHealth;
 
-        healthSlider.maxValue = health.MaxHealth;
-        healthSlider.SetValueWithoutNotify(currentHealth);
+            healthSlider.SetValueWithoutNotify(currentHealth);
+        }
+
+        // Show the health bar only when actual damage occurs.
+        if (currentHealth < previousHealth && !hasBeenHit)
+        {
+            hasBeenHit = true;
+            ShowHealthBar();
+        }
     }
 
     private void RefreshHealthBar()
@@ -80,5 +106,21 @@ public class EnemyWorldHealthBar : MonoBehaviour
         healthSlider.SetValueWithoutNotify(
             enemyHealth.CurrentHealth
         );
+    }
+
+    private void ShowHealthBar()
+    {
+        if (canvasGroup == null)
+            return;
+
+        canvasGroup.alpha = 1f;
+    }
+
+    private void HideHealthBar()
+    {
+        if (canvasGroup == null)
+            return;
+
+        canvasGroup.alpha = 0f;
     }
 }

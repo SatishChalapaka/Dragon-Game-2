@@ -267,7 +267,7 @@ MonoBehaviour:
   - {fileID: 651093978886373962}
   projectilePrefab: {fileID: 5042357904116284161, guid: 2bf9d20f694758645ba63f143529bb82,
     type: 3}
-  attackPattern: 9
+  attackPattern: 1
   attackInterval: 1.5
   fanProjectileCount: 5
   fanSpreadAngle: 60

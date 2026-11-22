@@ -64,15 +64,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 598432657227884863}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 20}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4792792402639384485}
   - {fileID: 3880286520379112614}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1443256877213839253
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,8 +127,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movementType: 2
   moveSpeed: 4
+  entryMoveSpeed: 5
+  entryViewportY: 0.5
+  randomWaveAmplitude: 0.5
+  randomWaveFrequency: 0.5
+  randomMovementPhase: 6
+  avoidanceRadius: 0.5
+  sideStepSpeed: 0.5
+  avoidanceStrength: 1
+  horizontalMovementLimit: 4
+  enemyLayers:
+    serializedVersion: 2
+    m_Bits: 0
   waveAmplitude: 3
   waveFrequency: 5
+  hoverAmplitude: 2
+  hoverFrequency: 2
+  circularRadius: 2
+  circularSpeed: 2
+  diveSpeed: 10
+  predeterminedDiveDirection: {x: 0, y: 0, z: -1}
   formationRoot: {fileID: 0}
   formationOffset: {x: 0, y: 0, z: 0}
   formationSpeed: 5
@@ -796,7 +814,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4609440982992994533}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0.007589825, y: -0.70706606, z: 0.70706606, w: 0.007589825}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -804,7 +822,7 @@ Transform:
   - {fileID: 9064305221469285769}
   - {fileID: 219411350707579834}
   m_Father: {fileID: 6437663706549316617}
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: -178.77, z: 0}
 --- !u!95 &9093911714957466702
 Animator:
   serializedVersion: 5

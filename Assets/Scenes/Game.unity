@@ -1573,7 +1573,10 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: -24}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1536424293}
+  - {fileID: 1733639067}
+  - {fileID: 1326950197}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &480457729
@@ -1800,6 +1803,7 @@ GameObject:
   m_Component:
   - component: {fileID: 588806649}
   - component: {fileID: 588806648}
+  - component: {fileID: 588806650}
   m_Layer: 0
   m_Name: EnemySpawner
   m_TagString: Untagged
@@ -1821,6 +1825,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dragon: {fileID: 1983545461}
   poolManager: {fileID: 673977691}
+  spawnDirector: {fileID: 0}
   enemyPrefabs:
   - {fileID: 598432657227884863, guid: a0e2b83d0cd3a5544b87ffce2cb5b11f, type: 3}
   - {fileID: 598432657227884863, guid: 0026a124d96f8b340bc1d70e6f2104b3, type: 3}
@@ -1834,7 +1839,7 @@ MonoBehaviour:
   - {x: 2, y: 0, z: 2}
   - {x: -4, y: 0, z: 4}
   - {x: 4, y: 0, z: 4}
-  spawnDistance: 32
+  fixedSpawnZ: 17
   spawnXRange: {x: -4, y: 4}
   initialPoolSize: 10
   rewardPrefabs:
@@ -1857,6 +1862,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 583239488}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &588806650
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 588806647}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb73494a398d93e46bdd104a94f1e4f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameplayCamera: {fileID: 330585545}
+  maximumVisibleEnemies: 10
+  minimumSpawnDistance: 2.5
+  minimumHorizontalDistance: 2.5
+  horizontalSeparationDepth: 1.5
+  maximumSpawnAttempts: 30
+  reservationReleaseDistance: 3.5
 --- !u!1 &590258559
 GameObject:
   m_ObjectHideFlags: 0
@@ -2335,17 +2359,22 @@ MonoBehaviour:
     - enemies:
       - enemyPrefab: {fileID: 598432657227884863, guid: a0e2b83d0cd3a5544b87ffce2cb5b11f,
           type: 3}
-        count: 10
+        count: 5
         spawnInterval: 1
       - enemyPrefab: {fileID: 598432657227884863, guid: 0026a124d96f8b340bc1d70e6f2104b3,
           type: 3}
-        count: 10
+        count: 5
         spawnInterval: 1
       - enemyPrefab: {fileID: 598432657227884863, guid: c336d21820dee0d4d812f11d7d31701c,
           type: 3}
-        count: 10
+        count: 5
         spawnInterval: 1
-      formations: []
+      formations:
+      - enemyPrefab: {fileID: 598432657227884863, guid: 04c2dd14089995e468f6b50831872d16,
+          type: 3}
+        formationsToSpawn: 1
+        enemiesPerFormation: 1
+        formationSpawnInterval: 1
       bossPrefab: {fileID: 0}
       healthMultiplier: 1
       speedMultiplier: 1
@@ -3521,7 +3550,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 458890403}
     m_Modifications:
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
@@ -3531,12 +3560,12 @@ PrefabInstance:
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -12.8
+      value: -10
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 48
+      value: 72
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
@@ -3546,17 +3575,17 @@ PrefabInstance:
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
@@ -3953,7 +3982,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 458890403}
     m_Modifications:
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
@@ -3963,12 +3992,12 @@ PrefabInstance:
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -12.8
+      value: -10
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -48
+      value: -24
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
@@ -3978,17 +4007,17 @@ PrefabInstance:
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
@@ -4552,7 +4581,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 458890403}
     m_Modifications:
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
@@ -4562,12 +4591,12 @@ PrefabInstance:
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -12.8
+      value: -10
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
@@ -4577,17 +4606,17 @@ PrefabInstance:
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1913745622250358417, guid: e5a332a4df4c0b340bf37d2755b3a91c,
         type: 3}
@@ -5331,8 +5360,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
-  minBounds: {x: -5, y: -12}
-  maxBounds: {x: 5, y: 12}
+  minBounds: {x: -6, y: -13}
+  maxBounds: {x: 6, y: 13}
 --- !u!54 &1983545458
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -5453,7 +5482,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4996fee365dfb247a7df688a73fed64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 1000
+  maxHealth: 100
 --- !u!114 &1983545465
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6492,6 +6521,3 @@ SceneRoots:
   - {fileID: 458890403}
   - {fileID: 1905948939}
   - {fileID: 583239488}
-  - {fileID: 1536424292}
-  - {fileID: 1733639066}
-  - {fileID: 1326950196}
