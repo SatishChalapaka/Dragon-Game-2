@@ -12,7 +12,15 @@ public class EnemyMovement : MonoBehaviour
         Stationary,
         StationaryHover,
         Circular,
-        Dive
+        Dive,
+        ZigZag,
+        HorizontalSweep,
+        FigureEight,
+        ArcMovement,
+        BobbingHover,
+        DiagonalSweep,
+        Patrol,
+        Swoop
     }
 
     [Header("Enemy Settings")]
@@ -30,16 +38,9 @@ public class EnemyMovement : MonoBehaviour
     private bool hasEnteredScreen;
 
     [Header("Individual Destination Settings")]
-    [SerializeField]
-    private Vector2 destinationXRange =
-        new Vector2(-4f, 4f);
-
-    [SerializeField]
-    private Vector2 destinationZRange =
-        new Vector2(0f, 12f);
-
+    [SerializeField] private Vector2 destinationXRange = new Vector2(-4f, 4f);
+    [SerializeField] private Vector2 destinationZRange = new Vector2(0f, 12f);
     [SerializeField] private float destinationMoveSpeed = 5f;
-
     [SerializeField] private float destinationReachDistance = 0.15f;
 
     private Vector3 assignedDestination;
@@ -48,9 +49,14 @@ public class EnemyMovement : MonoBehaviour
     [Header("Sine Wave Settings")]
     [SerializeField] private float waveAmplitude = 2f;
     [SerializeField] private float waveFrequency = 2f;
+    [SerializeField] private float verticalWaveAmplitude = 3f;
+    [SerializeField] private float verticalWaveFrequency = 0.8f;
 
     private float randomizedWaveAmplitude;
     private float randomizedWaveFrequency;
+    private float randomizedVerticalAmplitude;
+    private float randomizedVerticalFrequency;
+
     private float movementPhase;
     private float waveTimer;
 
@@ -61,6 +67,7 @@ public class EnemyMovement : MonoBehaviour
     private float randomizedHoverAmplitude;
     private float randomizedHoverFrequency;
     private Vector3 hoverCenter;
+    private bool isHovering;
 
     [Header("Circular Movement Settings")]
     [SerializeField] private float circularRadius = 2f;
@@ -72,13 +79,48 @@ public class EnemyMovement : MonoBehaviour
 
     [Header("Dive Settings")]
     [SerializeField] private float diveSpeed = 10f;
-    [SerializeField]
-    private Vector3 predeterminedDiveDirection =
+    [SerializeField] private Vector3 predeterminedDiveDirection =
         new Vector3(0f, 0f, -1f);
 
     private Vector3 diveDirection;
-    private Vector3 diveDestination;
     private bool diveStarted;
+
+    [Header("ZigZag Settings")]
+    [SerializeField] private float zigZagWidth = 3f;
+    [SerializeField] private float zigZagFrequency = 2f;
+    [SerializeField] private float zigZagForwardSpeed = 2f;
+
+    [Header("Horizontal Sweep Settings")]
+    [SerializeField] private float sweepWidth = 4f;
+    [SerializeField] private float sweepFrequency = 1.5f;
+    [SerializeField] private float sweepForwardSpeed = 1f;
+
+    [Header("Figure Eight Settings")]
+    [SerializeField] private float figureEightWidth = 2f;
+    [SerializeField] private float figureEightDepth = 4f;
+    [SerializeField] private float figureEightSpeed = 1.5f;
+
+    [Header("Arc Movement Settings")]
+    [SerializeField] private float arcWidth = 3f;
+    [SerializeField] private float arcDepth = 4f;
+    [SerializeField] private float arcSpeed = 1f;
+
+    [Header("Bobbing Hover Settings")]
+    [SerializeField] private float bobbingAmplitude = 2f;
+    [SerializeField] private float bobbingFrequency = 1.5f;
+
+    [Header("Diagonal Sweep Settings")]
+    [SerializeField] private float diagonalWidth = 4f;
+    [SerializeField] private float diagonalSpeed = 3f;
+
+    [Header("Patrol Settings")]
+    [SerializeField] private float patrolWidth = 3f;
+    [SerializeField] private float patrolSpeed = 2f;
+
+    [Header("Swoop Settings")]
+    [SerializeField] private float swoopWidth = 3f;
+    [SerializeField] private float swoopDepth = 5f;
+    [SerializeField] private float swoopSpeed = 1.5f;
 
     [Header("Formation Settings")]
     [SerializeField] private Transform formationRoot;
@@ -87,7 +129,12 @@ public class EnemyMovement : MonoBehaviour
 
     private Rigidbody rb;
     private Camera mainCamera;
+
     private Vector3 startPosition;
+    private Vector3 movementCenter;
+
+    private float movementTimer;
+    private float patrolDirection = 1f;
 
     private void Awake()
     {
@@ -101,7 +148,7 @@ public class EnemyMovement : MonoBehaviour
         rb.useGravity = false;
         rb.isKinematic = true;
 
-        startPosition = transform.position;
+        startPosition = rb.position;
 
         RandomizeMovement();
     }
@@ -137,6 +184,38 @@ public class EnemyMovement : MonoBehaviour
             case MovementType.Dive:
                 MoveDive();
                 break;
+
+            case MovementType.ZigZag:
+                MoveZigZag();
+                break;
+
+            case MovementType.HorizontalSweep:
+                MoveHorizontalSweep();
+                break;
+
+            case MovementType.FigureEight:
+                MoveFigureEight();
+                break;
+
+            case MovementType.ArcMovement:
+                MoveArc();
+                break;
+
+            case MovementType.BobbingHover:
+                MoveBobbingHover();
+                break;
+
+            case MovementType.DiagonalSweep:
+                MoveDiagonalSweep();
+                break;
+
+            case MovementType.Patrol:
+                MovePatrol();
+                break;
+
+            case MovementType.Swoop:
+                MoveSwoop();
+                break;
         }
     }
 
@@ -152,6 +231,16 @@ public class EnemyMovement : MonoBehaviour
         randomizedWaveFrequency = Random.Range(
             waveFrequency * 0.7f,
             waveFrequency * 1.3f
+        );
+
+        randomizedVerticalAmplitude = Random.Range(
+            verticalWaveAmplitude * 0.7f,
+            verticalWaveAmplitude * 1.3f
+        );
+
+        randomizedVerticalFrequency = Random.Range(
+            verticalWaveFrequency * 0.7f,
+            verticalWaveFrequency * 1.3f
         );
 
         randomizedHoverAmplitude = Random.Range(
@@ -177,57 +266,56 @@ public class EnemyMovement : MonoBehaviour
 
     private void AssignDestination()
     {
-        float randomX = Random.Range(
-            destinationXRange.x,
-            destinationXRange.y
-        );
-
-        float randomZ = Random.Range(
-            destinationZRange.x,
-            destinationZRange.y
-        );
-
         assignedDestination = new Vector3(
-            randomX,
+            Random.Range(destinationXRange.x, destinationXRange.y),
             rb.position.y,
-            randomZ
+            Random.Range(destinationZRange.x, destinationZRange.y)
         );
 
         hasAssignedDestination = true;
+    }
+
+    private void MoveSmoothly(Vector3 target, float speed)
+    {
+        Vector3 direction = target - rb.position;
+
+        Vector3 newPosition = Vector3.MoveTowards(
+            rb.position,
+            target,
+            speed * Time.fixedDeltaTime
+        );
+
+        rb.MovePosition(newPosition);
+
+        RotateTowards(direction);
     }
 
     private void MoveStraight()
     {
         Vector3 direction = Vector3.back;
 
-        Vector3 target = rb.position +
-            direction * moveSpeed * Time.fixedDeltaTime;
-
-        rb.MovePosition(target);
+        rb.MovePosition(
+            rb.position + direction * moveSpeed * Time.fixedDeltaTime
+        );
 
         RotateTowards(direction);
     }
 
     private void MoveSineWave()
     {
-        waveTimer += Time.fixedDeltaTime;
+        movementTimer += Time.fixedDeltaTime;
 
-        float xOffset = Mathf.Sin(
-            (waveTimer * randomizedWaveFrequency) + movementPhase
+        float x = Mathf.Sin(
+            movementTimer * randomizedWaveFrequency + movementPhase
         ) * randomizedWaveAmplitude;
 
-        Vector3 target = startPosition +
-            new Vector3(
-                xOffset,
-                0f,
-                -moveSpeed * waveTimer
-            );
+        float z = Mathf.Sin(
+            movementTimer * randomizedVerticalFrequency + movementPhase
+        ) * randomizedVerticalAmplitude;
 
-        Vector3 direction = target - rb.position;
+        Vector3 target = startPosition + new Vector3(x, 0f, z);
 
-        rb.MovePosition(target);
-
-        RotateTowards(direction);
+        MoveSmoothly(target, moveSpeed);
     }
 
     private void MoveFormation()
@@ -237,15 +325,7 @@ public class EnemyMovement : MonoBehaviour
 
         Vector3 target = formationRoot.TransformPoint(formationOffset);
 
-        Vector3 newPosition = Vector3.MoveTowards(
-            rb.position,
-            target,
-            formationSpeed * Time.fixedDeltaTime
-        );
-
-        rb.MovePosition(newPosition);
-
-        RotateTowards(Vector3.back);
+        MoveSmoothly(target, formationSpeed);
     }
 
     private void MoveStationary()
@@ -256,7 +336,6 @@ public class EnemyMovement : MonoBehaviour
                 return;
 
             hasEnteredScreen = true;
-
             AssignDestination();
         }
 
@@ -271,34 +350,41 @@ public class EnemyMovement : MonoBehaviour
                 return;
 
             hasEnteredScreen = true;
-
             AssignDestination();
 
             hoverCenter = assignedDestination;
+            isHovering = false;
         }
 
-        MoveTowardsAssignedDestination();
-
-        if (Vector3.Distance(rb.position, assignedDestination) >
-            destinationReachDistance)
+        if (!isHovering)
         {
+            MoveTowardsAssignedDestination();
+
+            if (Vector3.Distance(rb.position, assignedDestination)
+                <= destinationReachDistance)
+            {
+                isHovering = true;
+                hoverCenter = rb.position;
+                movementTimer = 0f;
+            }
+
             return;
         }
 
-        waveTimer += Time.fixedDeltaTime;
+        movementTimer += Time.fixedDeltaTime;
 
-        float xOffset = Mathf.Sin(
-            waveTimer * randomizedHoverFrequency + movementPhase
+        float x = Mathf.Sin(
+            movementTimer * randomizedHoverFrequency + movementPhase
         ) * randomizedHoverAmplitude;
 
-        float zOffset = Mathf.Cos(
-            waveTimer * randomizedHoverFrequency * 0.7f + movementPhase
+        float z = Mathf.Cos(
+            movementTimer * randomizedHoverFrequency * 0.7f + movementPhase
         ) * randomizedHoverAmplitude * 0.25f;
 
-        Vector3 target = hoverCenter +
-            new Vector3(xOffset, 0f, zOffset);
-
-        rb.MovePosition(target);
+        MoveSmoothly(
+            hoverCenter + new Vector3(x, 0f, z),
+            destinationMoveSpeed
+        );
     }
 
     private void MoveCircular()
@@ -309,27 +395,24 @@ public class EnemyMovement : MonoBehaviour
                 return;
 
             hasEnteredScreen = true;
-
             AssignDestination();
 
-            startPosition = assignedDestination;
+            movementCenter = assignedDestination;
+            movementTimer = 0f;
         }
 
-        circularTimer += Time.fixedDeltaTime;
+        movementTimer += Time.fixedDeltaTime;
 
         float angle =
-            circularTimer * randomizedCircularSpeed + movementPhase;
+            movementTimer * randomizedCircularSpeed + movementPhase;
 
-        float xOffset =
-            Mathf.Sin(angle) * randomizedCircularRadius;
+        Vector3 target = movementCenter + new Vector3(
+            Mathf.Sin(angle) * randomizedCircularRadius,
+            0f,
+            Mathf.Cos(angle) * randomizedCircularRadius
+        );
 
-        float zOffset =
-            Mathf.Cos(angle) * randomizedCircularRadius;
-
-        Vector3 target = startPosition +
-            new Vector3(xOffset, 0f, zOffset);
-
-        rb.MovePosition(target);
+        MoveSmoothly(target, moveSpeed);
     }
 
     private void MoveDive()
@@ -341,11 +424,6 @@ public class EnemyMovement : MonoBehaviour
 
             hasEnteredScreen = true;
 
-            if (!hasAssignedDestination)
-                AssignDestination();
-
-            diveStarted = true;
-
             diveDirection = predeterminedDiveDirection;
             diveDirection.y = 0f;
 
@@ -353,8 +431,7 @@ public class EnemyMovement : MonoBehaviour
                 diveDirection = Vector3.back;
 
             diveDirection.Normalize();
-
-            diveDestination = assignedDestination;
+            diveStarted = true;
         }
 
         if (!diveStarted)
@@ -364,18 +441,177 @@ public class EnemyMovement : MonoBehaviour
             diveDirection * diveSpeed * Time.fixedDeltaTime;
 
         rb.MovePosition(target);
-
         RotateTowards(diveDirection);
+    }
+
+    // Smooth alternating left and right.
+    private void MoveZigZag()
+    {
+        movementTimer += Time.fixedDeltaTime;
+
+        float x = Mathf.PingPong(
+            movementTimer * zigZagFrequency,
+            zigZagWidth * 2f
+        ) - zigZagWidth;
+
+        Vector3 target = startPosition + new Vector3(
+            x,
+            0f,
+            -movementTimer * zigZagForwardSpeed
+        );
+
+        MoveSmoothly(target, moveSpeed);
+    }
+
+    // Smooth horizontal sweeping with forward progression.
+    private void MoveHorizontalSweep()
+    {
+        movementTimer += Time.fixedDeltaTime;
+
+        float x = Mathf.Sin(
+            movementTimer * sweepFrequency + movementPhase
+        ) * sweepWidth;
+
+        Vector3 target = startPosition + new Vector3(
+            x,
+            0f,
+            -movementTimer * sweepForwardSpeed
+        );
+
+        MoveSmoothly(target, moveSpeed);
+    }
+
+    // Figure-eight flight path.
+    private void MoveFigureEight()
+    {
+        movementTimer += Time.fixedDeltaTime;
+
+        float angle = movementTimer * figureEightSpeed + movementPhase;
+
+        float x = Mathf.Sin(angle) * figureEightWidth;
+
+        float z = Mathf.Sin(angle * 2f) * figureEightDepth;
+
+        Vector3 target = movementCenter + new Vector3(x, 0f, z);
+
+        MoveSmoothly(target, moveSpeed);
+    }
+
+    // Smooth arc movement.
+    private void MoveArc()
+    {
+        movementTimer += Time.fixedDeltaTime;
+
+        float angle = Mathf.Lerp(
+            -Mathf.PI * 0.5f,
+            Mathf.PI * 0.5f,
+            Mathf.PingPong(movementTimer * arcSpeed, 1f)
+        );
+
+        float x = Mathf.Sin(angle) * arcWidth;
+        float z = Mathf.Cos(angle) * arcDepth;
+
+        Vector3 target = movementCenter + new Vector3(x, 0f, z);
+
+        MoveSmoothly(target, moveSpeed);
+    }
+
+    // Gentle up and down movement along the Z axis.
+    private void MoveBobbingHover()
+    {
+        movementTimer += Time.fixedDeltaTime;
+
+        float z = Mathf.Sin(
+            movementTimer * bobbingFrequency + movementPhase
+        ) * bobbingAmplitude;
+
+        Vector3 target = movementCenter + new Vector3(0f, 0f, z);
+
+        MoveSmoothly(target, destinationMoveSpeed);
+    }
+
+    // Repeated diagonal movement.
+    private void MoveDiagonalSweep()
+    {
+        movementTimer += Time.fixedDeltaTime;
+
+        float progress = Mathf.PingPong(
+            movementTimer * diagonalSpeed,
+            2f
+        ) - 1f;
+
+        float x = progress * diagonalWidth;
+
+        Vector3 target = startPosition + new Vector3(
+            x,
+            0f,
+            -movementTimer * moveSpeed * 0.25f
+        );
+
+        MoveSmoothly(target, moveSpeed);
+    }
+
+    // Moves between two horizontal positions.
+    private void MovePatrol()
+    {
+        if (!hasEnteredScreen)
+        {
+            if (!MoveIntoScreen())
+                return;
+
+            hasEnteredScreen = true;
+            movementCenter = rb.position;
+        }
+
+        float nextX = rb.position.x +
+            patrolDirection * patrolSpeed * Time.fixedDeltaTime;
+
+        float leftLimit = movementCenter.x - patrolWidth;
+        float rightLimit = movementCenter.x + patrolWidth;
+
+        if (nextX >= rightLimit)
+        {
+            nextX = rightLimit;
+            patrolDirection = -1f;
+        }
+        else if (nextX <= leftLimit)
+        {
+            nextX = leftLimit;
+            patrolDirection = 1f;
+        }
+
+        Vector3 target = new Vector3(
+            nextX,
+            rb.position.y,
+            movementCenter.z
+        );
+
+        MoveSmoothly(target, patrolSpeed);
+    }
+
+    // Curved downward and upward swoop.
+    private void MoveSwoop()
+    {
+        movementTimer += Time.fixedDeltaTime;
+
+        float angle = movementTimer * swoopSpeed + movementPhase;
+
+        float x = Mathf.Sin(angle) * swoopWidth;
+
+        float z = -Mathf.Sin(angle * 0.5f) * swoopDepth;
+
+        Vector3 target = movementCenter + new Vector3(x, 0f, z);
+
+        MoveSmoothly(target, moveSpeed);
     }
 
     private bool MoveIntoScreen()
     {
         Vector3 direction = Vector3.back;
 
-        Vector3 target = rb.position +
-            direction * entryMoveSpeed * Time.fixedDeltaTime;
-
-        rb.MovePosition(target);
+        rb.MovePosition(
+            rb.position + direction * entryMoveSpeed * Time.fixedDeltaTime
+        );
 
         RotateTowards(direction);
 
@@ -385,11 +621,9 @@ public class EnemyMovement : MonoBehaviour
         if (mainCamera == null)
             return false;
 
-        Vector3 viewportPosition =
-            mainCamera.WorldToViewportPoint(rb.position);
+        Vector3 viewport = mainCamera.WorldToViewportPoint(rb.position);
 
-        return viewportPosition.z > 0f &&
-               viewportPosition.y <= entryViewportY;
+        return viewport.z > 0f && viewport.y <= entryViewportY;
     }
 
     private void MoveTowardsAssignedDestination()
@@ -397,21 +631,12 @@ public class EnemyMovement : MonoBehaviour
         if (!hasAssignedDestination)
             return;
 
-        Vector3 target = Vector3.MoveTowards(
-            rb.position,
-            assignedDestination,
-            destinationMoveSpeed * Time.fixedDeltaTime
-        );
-
-        rb.MovePosition(target);
-
-        RotateTowards(assignedDestination - rb.position);
+        MoveSmoothly(assignedDestination, destinationMoveSpeed);
     }
 
     public void SetFormation(Transform root, Vector3 offset)
     {
         movementType = MovementType.Formation;
-
         formationRoot = root;
         formationOffset = offset;
     }
@@ -423,8 +648,8 @@ public class EnemyMovement : MonoBehaviour
         if (direction.sqrMagnitude < 0.001f)
             direction = Vector3.back;
 
-        diveDirection = direction.normalized;
-        predeterminedDiveDirection = diveDirection;
+        predeterminedDiveDirection = direction.normalized;
+        diveDirection = predeterminedDiveDirection;
     }
 
     private void RotateTowards(Vector3 direction)
@@ -448,10 +673,12 @@ public class EnemyMovement : MonoBehaviour
 
     public void ResetForSpawn()
     {
+        movementTimer = 0f;
         waveTimer = 0f;
         circularTimer = 0f;
 
         startPosition = rb.position;
+        movementCenter = rb.position;
 
         formationRoot = null;
         formationOffset = Vector3.zero;
@@ -459,9 +686,12 @@ public class EnemyMovement : MonoBehaviour
         hasEnteredScreen = false;
         hasAssignedDestination = false;
 
+        isHovering = false;
         diveStarted = false;
 
         diveDirection = predeterminedDiveDirection;
+
+        patrolDirection = 1f;
 
         movementType = defaultMovementType;
         moveSpeed = baseMoveSpeed;
@@ -478,22 +708,30 @@ public class EnemyMovement : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, 0.5f);
 
-        Gizmos.DrawWireSphere(
-            transform.position,
-            0.5f
-        );
-
-        Gizmos.color = Color.green;
-
-        Gizmos.DrawWireSphere(
-            assignedDestination,
-            0.5f
-        );
-
-        Gizmos.DrawLine(
-            transform.position,
-            assignedDestination
-        );
+        if (hasAssignedDestination)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(assignedDestination, 0.5f);
+            Gizmos.DrawLine(transform.position, assignedDestination);
+        }
     }
 }
+
+    // private void MoveSineWave()
+    // {
+    //     waveTimer += Time.fixedDeltaTime;
+
+    //     float xOffset = Mathf.Sin(
+    //         waveTimer * randomizedWaveFrequency + movementPhase
+    //     ) * randomizedWaveAmplitude;
+
+    //     Vector3 target = startPosition +
+    //         new Vector3(xOffset, 0f, -moveSpeed * waveTimer);
+
+    //     Vector3 direction = target - rb.position;
+
+    //     rb.MovePosition(target);
+    //     RotateTowards(direction);
+    // }

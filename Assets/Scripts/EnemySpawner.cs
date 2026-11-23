@@ -149,14 +149,11 @@ public class EnemySpawner : MonoBehaviour
             return false;
         }
 
-        if (!TryFindSpawnPosition(out Vector3 spawnPosition))
-        {
-            Debug.LogWarning(
-                "No safe spawn position available for boss!"
-            );
-
-            return false;
-        }
+        Vector3 spawnPosition = new Vector3(
+    0f,
+    dragon.position.y,
+    20f
+);
 
         GameObject boss = poolManager.Get(
             bossPrefab,

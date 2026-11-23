@@ -2408,7 +2408,7 @@ MonoBehaviour:
         count: 5
         spawnInterval: 1
       formations: []
-      bossPrefab: {fileID: 598432657227884863, guid: 4e0d431d24773b046803632bfadcfd0e,
+      bossPrefab: {fileID: 598432657227884863, guid: 545c12ebd90a0ea4183979f559b40add,
         type: 3}
       healthMultiplier: 1
       speedMultiplier: 1
