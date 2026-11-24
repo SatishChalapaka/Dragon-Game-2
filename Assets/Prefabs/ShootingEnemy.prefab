@@ -106,12 +106,35 @@ MonoBehaviour:
   destinationReachDistance: 0.15
   waveAmplitude: 3
   waveFrequency: 5
+  verticalWaveAmplitude: 3
+  verticalWaveFrequency: 0.8
   hoverAmplitude: 2
   hoverFrequency: 2
   circularRadius: 2
   circularSpeed: 2
   diveSpeed: 10
   predeterminedDiveDirection: {x: 0, y: 0, z: -1}
+  zigZagWidth: 3
+  zigZagFrequency: 2
+  zigZagForwardSpeed: 2
+  sweepWidth: 4
+  sweepFrequency: 1.5
+  sweepForwardSpeed: 1
+  figureEightWidth: 2
+  figureEightDepth: 4
+  figureEightSpeed: 1.5
+  arcWidth: 3
+  arcDepth: 4
+  arcSpeed: 1
+  bobbingAmplitude: 2
+  bobbingFrequency: 1.5
+  diagonalWidth: 4
+  diagonalSpeed: 3
+  patrolWidth: 3
+  patrolSpeed: 2
+  swoopWidth: 3
+  swoopDepth: 5
+  swoopSpeed: 1.5
   formationRoot: {fileID: 0}
   formationOffset: {x: 0, y: 0, z: 0}
   formationSpeed: 5
@@ -182,7 +205,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1942b7fc5f77d9b45b021b2b2dc54429, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  deathEffectPrefab: {fileID: 4021103657954561961, guid: 5c755f9bc5253ea418e919994537dcc7,
+  deathEffectPrefab: {fileID: 9002224779446851267, guid: b3fdd2b875b728a4599fa7f6256000ac,
     type: 3}
   goldPrefab: {fileID: 6043703837084083049, guid: 75b11833f7f641b4cb32de480e76f3b0,
     type: 3}
@@ -211,6 +234,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   collisionDamage: 10
+  playerCollisionEffectPrefab: {fileID: 9002224779446851267, guid: ee6a36e86c2c9874c98b4306db9fe6c8,
+    type: 3}
+  enemyImpactEffectPrefab: {fileID: 9002224779446851267, guid: ee6a36e86c2c9874c98b4306db9fe6c8,
+    type: 3}
   behindDragonDistance: 10
   aheadDragonDistance: 80
   sideDistance: 30

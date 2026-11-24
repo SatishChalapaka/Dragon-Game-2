@@ -1,37 +1,117 @@
 
+using System.Collections;
 using UnityEngine;
 
-[RequireComponent(typeof(ParticleSystem))]
 [RequireComponent(typeof(PooledObject))]
 public class PooledParticleEffect : MonoBehaviour
 {
-    private ParticleSystem particleEffect;
     private PooledObject pooledObject;
+    private ParticleSystem[] particleSystems;
+
+    private Coroutine returnCoroutine;
+
+    private float playbackDuration = 2f;
 
     private void Awake()
     {
-        particleEffect = GetComponent<ParticleSystem>();
         pooledObject = GetComponent<PooledObject>();
 
-        var main = particleEffect.main;
+        particleSystems =
+            GetComponentsInChildren<ParticleSystem>(true);
 
-        main.loop = false;
-        main.playOnAwake = false;
-        main.stopAction = ParticleSystemStopAction.Callback;
+        CalculatePlaybackDuration();
+    }
+
+    private void OnEnable()
+    {
+        PlayEffect();
     }
 
     public void PlayEffect()
     {
-        particleEffect.Stop(
-            true,
-            ParticleSystemStopBehavior.StopEmittingAndClear
-        );
+        if (particleSystems == null || particleSystems.Length == 0)
+            return;
 
-        particleEffect.Play(true);
+        // Stop an existing return timer.
+        if (returnCoroutine != null)
+        {
+            StopCoroutine(returnCoroutine);
+            returnCoroutine = null;
+        }
+
+        // Restart all particle systems.
+        foreach (ParticleSystem particle in particleSystems)
+        {
+            if (particle == null)
+                continue;
+
+            particle.Stop(
+                true,
+                ParticleSystemStopBehavior.StopEmittingAndClear
+            );
+
+            particle.Play(true);
+        }
+
+        // Start a new return timer.
+        returnCoroutine = StartCoroutine(ReturnAfterPlayback());
     }
 
-    private void OnParticleSystemStopped()
+    private void CalculatePlaybackDuration()
     {
-        pooledObject.ReturnToPool();
+        playbackDuration = 0f;
+
+        foreach (ParticleSystem particle in particleSystems)
+        {
+            if (particle == null)
+                continue;
+
+            ParticleSystem.MainModule main = particle.main;
+
+            float duration =
+                main.duration + main.startLifetime.constantMax;
+
+            playbackDuration = Mathf.Max(
+                playbackDuration,
+                duration
+            );
+        }
+
+        playbackDuration = Mathf.Max(0.1f, playbackDuration);
+    }
+
+    private IEnumerator ReturnAfterPlayback()
+    {
+        yield return new WaitForSeconds(playbackDuration);
+
+        returnCoroutine = null;
+
+        if (pooledObject != null && !pooledObject.IsInPool)
+        {
+            pooledObject.ReturnToPool();
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (returnCoroutine != null)
+        {
+            StopCoroutine(returnCoroutine);
+            returnCoroutine = null;
+        }
+
+        if (particleSystems == null)
+            return;
+
+        foreach (ParticleSystem particle in particleSystems)
+        {
+            if (particle == null)
+                continue;
+
+            particle.Stop(
+                true,
+                ParticleSystemStopBehavior.StopEmittingAndClear
+            );
+        }
     }
 }

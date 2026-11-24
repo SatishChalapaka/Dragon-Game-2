@@ -270,7 +270,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1942b7fc5f77d9b45b021b2b2dc54429, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  deathEffectPrefab: {fileID: 5880797563127281583, guid: 265d3a5ba69981a4698ceabcedf368b0,
+  deathEffectPrefab: {fileID: 9002224779446851267, guid: c55a90840731f0846a720c7766fbfc0f,
     type: 3}
   goldPrefab: {fileID: 6043703837084083049, guid: 75b11833f7f641b4cb32de480e76f3b0,
     type: 3}
@@ -299,6 +299,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   collisionDamage: 10
+  playerCollisionEffectPrefab: {fileID: 9002224779446851267, guid: ee6a36e86c2c9874c98b4306db9fe6c8,
+    type: 3}
+  enemyImpactEffectPrefab: {fileID: 9002224779446851267, guid: ee6a36e86c2c9874c98b4306db9fe6c8,
+    type: 3}
   behindDragonDistance: 10
   aheadDragonDistance: 80
   sideDistance: 30

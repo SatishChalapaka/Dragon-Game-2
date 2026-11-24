@@ -8,6 +8,10 @@ public class EnemyCollisionHandler : MonoBehaviour
     [SerializeField] private LayerMask dragonLayers;
     [SerializeField] private float collisionDamage = 20f;
 
+    [Header("Collision Particle Effects")]
+    [SerializeField] private GameObject playerCollisionEffectPrefab;
+    [SerializeField] private GameObject enemyImpactEffectPrefab;
+
     [Header("Cleanup Settings")]
     [SerializeField] private float behindDragonDistance = 20f;
     [SerializeField] private float aheadDragonDistance = 80f;
@@ -15,12 +19,14 @@ public class EnemyCollisionHandler : MonoBehaviour
 
     private Transform dragon;
     private PooledObject pooledObject;
+    private ObjectPoolManager poolManager;
 
     private bool hasCollided;
 
     private void Awake()
     {
         pooledObject = GetComponent<PooledObject>();
+        poolManager = ObjectPoolManager.Instance;
     }
 
     private void OnEnable()
@@ -31,6 +37,10 @@ public class EnemyCollisionHandler : MonoBehaviour
     public void Initialize(Transform dragonTarget)
     {
         dragon = dragonTarget;
+
+        if (poolManager == null)
+            poolManager = ObjectPoolManager.Instance;
+
         hasCollided = false;
     }
 
@@ -45,24 +55,64 @@ public class EnemyCollisionHandler : MonoBehaviour
         if (dragonHealth == null)
             return;
 
-        int dragonLayer =
-            1 << dragonHealth.gameObject.layer;
+        int dragonLayer = 1 << dragonHealth.gameObject.layer;
 
         if ((dragonLayers.value & dragonLayer) == 0)
             return;
 
         hasCollided = true;
 
-        // Damage the dragon.
+        // Find an approximate contact point on the player collider.
+        Vector3 impactPosition =
+            other.ClosestPoint(transform.position);
+
+        // Play particle around the player.
+        PlayCollisionEffect(
+            playerCollisionEffectPrefab,
+            dragonHealth.transform.position
+        );
+
+        // Play particle at the collision point.
+        PlayCollisionEffect(
+            enemyImpactEffectPrefab,
+            impactPosition
+        );
+
+        // Apply damage to the player.
         dragonHealth.TakeDamage(collisionDamage);
 
         // Return the enemy to the pool.
         pooledObject.ReturnToPool();
     }
 
+    private void PlayCollisionEffect(
+        GameObject effectPrefab,
+        Vector3 position)
+    {
+        if (effectPrefab == null)
+            return;
+
+        if (poolManager == null)
+            poolManager = ObjectPoolManager.Instance;
+
+        if (poolManager == null)
+        {
+            Debug.LogWarning(
+                "ObjectPoolManager not found. Cannot play collision effect."
+            );
+            return;
+        }
+
+        poolManager.Get(
+            effectPrefab,
+            position,
+            Quaternion.identity
+        );
+    }
+
     private void Update()
     {
-        if (dragon == null)
+        if (dragon == null || pooledObject.IsInPool)
             return;
 
         float distanceZ =
@@ -71,15 +121,12 @@ public class EnemyCollisionHandler : MonoBehaviour
         float distanceX =
             Mathf.Abs(transform.position.x - dragon.position.x);
 
-        // Enemy has passed too far behind the dragon.
         bool behindDragon =
             distanceZ < -behindDragonDistance;
 
-        // Enemy is too far ahead.
         bool aheadOfDragon =
             distanceZ > aheadDragonDistance;
 
-        // Enemy has moved too far sideways.
         bool outsideSideBounds =
             distanceX > sideDistance;
 

@@ -129,24 +129,41 @@ MonoBehaviour:
   moveSpeed: 4
   entryMoveSpeed: 5
   entryViewportY: 0.5
-  randomWaveAmplitude: 0.5
-  randomWaveFrequency: 0.5
-  randomMovementPhase: 6
-  avoidanceRadius: 0.5
-  sideStepSpeed: 0.5
-  avoidanceStrength: 1
-  horizontalMovementLimit: 4
-  enemyLayers:
-    serializedVersion: 2
-    m_Bits: 0
+  destinationXRange: {x: -4, y: 4}
+  destinationZRange: {x: 0, y: 12}
+  destinationMoveSpeed: 5
+  destinationReachDistance: 0.15
   waveAmplitude: 3
   waveFrequency: 5
+  verticalWaveAmplitude: 3
+  verticalWaveFrequency: 0.8
   hoverAmplitude: 2
   hoverFrequency: 2
   circularRadius: 2
   circularSpeed: 2
   diveSpeed: 10
   predeterminedDiveDirection: {x: 0, y: 0, z: -1}
+  zigZagWidth: 3
+  zigZagFrequency: 2
+  zigZagForwardSpeed: 2
+  sweepWidth: 4
+  sweepFrequency: 1.5
+  sweepForwardSpeed: 1
+  figureEightWidth: 2
+  figureEightDepth: 4
+  figureEightSpeed: 1.5
+  arcWidth: 3
+  arcDepth: 4
+  arcSpeed: 1
+  bobbingAmplitude: 2
+  bobbingFrequency: 1.5
+  diagonalWidth: 4
+  diagonalSpeed: 3
+  patrolWidth: 3
+  patrolSpeed: 2
+  swoopWidth: 3
+  swoopDepth: 5
+  swoopSpeed: 1.5
   formationRoot: {fileID: 0}
   formationOffset: {x: 0, y: 0, z: 0}
   formationSpeed: 5
@@ -224,6 +241,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   collisionDamage: 10
+  playerCollisionEffectPrefab: {fileID: 9002224779446851267, guid: ee6a36e86c2c9874c98b4306db9fe6c8,
+    type: 3}
+  enemyImpactEffectPrefab: {fileID: 9002224779446851267, guid: ee6a36e86c2c9874c98b4306db9fe6c8,
+    type: 3}
   behindDragonDistance: 10
   aheadDragonDistance: 80
   sideDistance: 30

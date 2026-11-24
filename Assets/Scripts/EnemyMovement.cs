@@ -303,19 +303,19 @@ public class EnemyMovement : MonoBehaviour
 
     private void MoveSineWave()
     {
-        movementTimer += Time.fixedDeltaTime;
+        waveTimer += Time.fixedDeltaTime;
 
-        float x = Mathf.Sin(
-            movementTimer * randomizedWaveFrequency + movementPhase
+        float xOffset = Mathf.Sin(
+            waveTimer * randomizedWaveFrequency + movementPhase
         ) * randomizedWaveAmplitude;
 
-        float z = Mathf.Sin(
-            movementTimer * randomizedVerticalFrequency + movementPhase
-        ) * randomizedVerticalAmplitude;
+        Vector3 target = startPosition +
+            new Vector3(xOffset, 0f, -moveSpeed * waveTimer);
 
-        Vector3 target = startPosition + new Vector3(x, 0f, z);
+        Vector3 direction = target - rb.position;
 
-        MoveSmoothly(target, moveSpeed);
+        rb.MovePosition(target);
+        RotateTowards(direction);
     }
 
     private void MoveFormation()
@@ -719,19 +719,3 @@ public class EnemyMovement : MonoBehaviour
     }
 }
 
-    // private void MoveSineWave()
-    // {
-    //     waveTimer += Time.fixedDeltaTime;
-
-    //     float xOffset = Mathf.Sin(
-    //         waveTimer * randomizedWaveFrequency + movementPhase
-    //     ) * randomizedWaveAmplitude;
-
-    //     Vector3 target = startPosition +
-    //         new Vector3(xOffset, 0f, -moveSpeed * waveTimer);
-
-    //     Vector3 direction = target - rb.position;
-
-    //     rb.MovePosition(target);
-    //     RotateTowards(direction);
-    // }
